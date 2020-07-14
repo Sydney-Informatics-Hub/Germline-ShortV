@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Re-run intervals for genotypegvcfs step
+# GenotypeGVCFs using consolidated data from
+# "gatk4_consolidate_vcfs.pbs" or gatk GenomicsDBImport step
+# Each "task" operates on one interval
+
+#PBS -P oj47
+#PBS -N missing_240cpu_960gb
+#PBS -l walltime=02:00:00,ncpus=240,mem=960GB,wd
+#PBS -q normal
+#PBS -W umask=022
+#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
+#PBS -o ./Logs/gatk4_genotypegvcfs/missing_240cpu_960gb.o
+#PBS -e ./Logs/gatk4_genotypegvcfs/missing_240cpu_960gb.e
+
+module load openmpi/4.0.2
+
+set -e
+
+# SCRIPT
+SCRIPT=./gatk4_genotypegvcfs.sh
+INPUTS=./Inputs/gatk4_genotypegvcfs_missing.inputs
+
+# M = Number of tasks per node
+# NCPUs = CPUs per task
+M=8
+NCPUS=6
+
+echo "$(date) : GATK 4 GenotypeGVCFs using interval databases created with GenomicsDBImport."
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
+
+
+# Benchmarking
+# Start with same resources used that got genomicsdbimport working
+# normalbw nodes (28CPU, 256Gb mem), as these will remain on Gadi
+## Let's try setting --tmp-dir using the best compute resources so far
+# 4 CPU 32 Gb mem (--java-options "-Xmx24g -Xms24g", --tmp-dir).  5 nodes
+# #PBS -l walltime=04:00:00,ncpus=140,mem=1280GB,wd
+# CPU = 4 will allow ~36.6Gb per task
+# Concurrent tasks= 35

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Merge HC per interval VCFs into a single sample GVCF
+# Samples are gzipped and tabix indexed
+
+# Job resources
+# 6 samples: 
+# Requested: 48 CPU 192 Gb mem, 2:30:00
+# Used: 48 CPU, 113.3 Gb, 0:32:95 walltime (2:50:55 CPU time). (~20Gb mem per sample)
+
+#PBS -P qa2
+#PBS -N gathervcfs
+#PBS -l walltime=02:00:00,ncpus=96,mem=384GB,wd
+#PBS -q normal
+#PBS -W umask=022
+#PBS -l storage=scratch/gq19+scratch/public
+#PBS -o ./Logs/gatk4_gathervcfs.o
+#PBS -e ./Logs/gatk4_gathervcfs.e
+#PBS -m ae
+
+module load openmpi/4.0.2
+
+set -e
+			
+# NCPUs = CPUs per task (ensure this is a multiple of 12, hardware configured in 2 x (2x12) fashion on normal nodes)
+# M= Number of tasks per node
+M=8
+NCPUS=6
+			
+# SCRIPT
+SCRIPT=./gatk4_hc_gathervcfs.sh
+INPUTS=./Inputs/gatk4_hc_gathervcfs.inputs
+
+echo "$(date) : GATK 4 GatherVcfs."
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Consolidate GVCFs - re-run intervals that failed
+# This merges scattered VCFs across samples
+# Result is 3200 VCF GenomicsDImport "databases", 1 for each interval
+# Each one is used as input for GenotypeGVCFs
+# Memory dependant on number of samples and coverage
+# ~35GB mem is required per task for 6 samples.
+# Check interval_duration_memory.txt for failed tasks and memory used per int
+# Depending on the number of task failing, increase CPU/mem accordingly
+
+#PBS -P oj47
+#PBS -N oscc_missing_192cpu_6000gb
+#PBS -l walltime=03:00:00,ncpus=192,mem=6000GB,wd
+#PBS -q hugemem
+#PBS -W umask=022
+#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
+#PBS -o ./Logs/gatk4_genomicsdbimport/oscc_missing_192cpu_6000gb.o
+#PBS -e ./Logs/gatk4_genomicsdbimport/oscc_missing_192cpu_6000gb.e
+
+module load openmpi/4.0.2
+
+set -e
+
+# SCRIPT
+SCRIPT=./gatk4_genomicsdbimport_missing.sh
+INPUTS=./Inputs/gatk4_genomicsdbimport_missing.inputs
+
+echo "$(date) : GATK 4 Consolidate VCFs across samples with GenomicsDBImport."
+
+# M = Number of tasks per node
+# NCPUs = CPUs per task
+M=4
+NCPUS=12
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file

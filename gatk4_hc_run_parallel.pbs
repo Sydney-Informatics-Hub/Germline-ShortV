@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Run GATK HC using scatter-gather method
+# Runs gatk4_hc.sh tasks in parallel
+# 1 task performs HC for 1 interval
+# 1 task requires 1 CPU, 4GB mem
+# 96CPU per sample will allow completion in ~1 hour for a 30-60X human coverage
+
+#PBS -P qa2
+#PBS -N hc_APCRC
+#PBS -l walltime=02:00:00,ncpus=1152,mem=4608GB,wd
+#PBS -q normal
+#PBS -W umask=022
+#PBS -l storage=scratch/gq19+scratch/public
+#PBS -o ./Logs/hc.o
+#PBS -e ./Logs/hc.e
+
+module load openmpi/4.0.2
+
+set -e
+
+# M = Number of tasks per node
+# NCPUs = CPUs per task
+M=48
+NCPUS=1
+			
+# SCRIPT
+SCRIPT=./gatk4_hc.sh
+INPUTS=./Inputs/gatk4_hc.inputs
+
+echo "$(date) : GATK 4 HaplotypeCaller."
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+mpirun --np $((M * PBS_NCPUS / 48)) --map-by socket:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Run GATK HC using scatter-gather method
+# Runs gatk4_hc.sh tasks in parallel
+# 1 task performs HC for 1 interval
+# 1 task requires 1 CPU, 4GB mem
+
+#PBS -P qa2
+#PBS -N Batch5_missing
+#PBS -l walltime=00:05:00,ncpus=2,mem=8GB,wd
+#PBS -q normal
+#PBS -W umask=022
+#PBS -l storage=scratch/gq19+scratch/public
+#PBS -o ./Logs/gatk4_hc/batch1-1_missing.o
+#PBS -e ./Logs/gatk4_hc/batch1-1_missing.e
+
+module load openmpi/4.0.2
+
+mkdir -p ./Logs/gatk4_hc
+set -e
+
+NCPUS=1 	
+nt=1
+			
+# SCRIPT
+SCRIPT=./gatk4_hc.sh
+INPUTS=./Inputs/gatk4_hc_missing.inputs
+#INPUTS_LOGS=./Inputs/gatk4_hc_check_logs.inputs
+
+
+#Generally don't change this (for normal nodes):
+CPN=48 #CPUs per node
+M=$(( CPN / NCPUS )) #tasks per node
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+
+mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
+

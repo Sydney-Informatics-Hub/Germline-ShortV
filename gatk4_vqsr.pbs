@@ -1,0 +1,138 @@
+#!/bin/bash
+
+# Run SNP and Indel VQSR. Collect Variant Cslling Metrics
+# See bottom of script for compute resources
+
+#PBS -P oj47
+#PBS -N vqsr
+#PBS -l walltime=03:00:00,ncpus=2,mem=48GB,wd
+#PBS -q express
+#PBS -W umask=022
+#PBS -l storage=scratch/er01+scratch/hm82
+#PBS -o ./Logs/gatk4_vqsr/vqsr.o
+#PBS -e ./Logs/gatk4_vqsr/vqsr.e
+
+set -e
+
+module load gatk/4.1.2.0
+module load R/3.6.1
+
+cohort=samples
+config=../$cohort.config
+vcfdir=./$cohort\_GenotypeGVCFs
+vqsrdir=./$cohort\_VQSR
+logdir=./Logs/gatk4_vqsr
+INPUTS=./Inputs
+mergedvcf=${vcfdir}/${cohort}.sorted.g.vcf.gz
+finaldir=../Final_Germline-ShortV_GVCFs
+
+# Reference
+dict=../Reference/hs38DH.dict
+refdir=../Reference/broad-references/v0
+mills=${refdir}/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
+axiomPoly=${refdir}/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz
+dbsnp=${refdir}/Homo_sapiens_assembly38.dbsnp138.vcf
+hapmap=${refdir}/hapmap_3.3.hg38.vcf.gz
+omni=${refdir}/1000G_omni2.5.hg38.vcf.gz
+thousandg=${refdir}/1000G_phase1.snps.high_confidence.hg38.vcf.gz
+
+# Outputs
+excesshet=${vqsrdir}/${cohort}_excesshet.vcf.gz
+sitesonly=${vqsrdir}/${cohort}_sitesonly.vcf.gz
+indelRecal=${vqsrdir}/${cohort}\_indels.recal
+indelTranches=${vqsrdir}/${cohort}\_indels.tranches
+indelR=${vqsrdir}/${cohort}_indels.R
+snpRecal=${vqsrdir}/${cohort}\_snps.recal
+snpTranches=${vqsrdir}/${cohort}\_snps.tranches
+snpR=${vqsrdir}/${cohort}_snps.R
+indelvqsr=${vqsrdir}/${cohort}\.indelsonly.recalibrated.vcf.gz
+finalvqsr=${finaldir}/${cohort}\.recalibrated.vcf.gz
+metrics=${finaldir}/${cohort}\.recalibrated.metrics
+
+mkdir -p ${vqsrdir}
+mkdir -p ${logdir}
+
+# ~0.81min/1000 intervals
+echo "$(date): VariantFiltration" >>${logdir}/${cohort}.oe 2>&1
+gatk --java-options "-Xmx42g -Xms42g" VariantFiltration \
+	-V ${mergedvcf} \
+	--filter-expression "ExcessHet > 54.69" \
+	--filter-name ExcessHet \
+	-O ${excesshet} >>${logdir}/${cohort}.oe 2>&1
+
+# ~0.95 min/1000 intervals
+echo "$(date): MakeSitesOnlyVcf" >>${logdir}/${cohort}.oe 2>&1
+gatk MakeSitesOnlyVcf \
+	-I ${excesshet} \
+	-O ${sitesonly} >>${logdir}/${cohort}.oe 2>&1
+
+echo "$(date): Indel VariantRecalibrator" >>${logdir}/${cohort}.oe 2>&1
+# Calculate VQSLOD tranches for indels using VariantRecalibrator. ~6.40 minutes for 6 samples
+gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
+	-V ${sitesonly} \
+	--trust-all-polymorphic \
+	-tranche 100.0 -tranche 99.95 -tranche 99.9 -tranche 99.5 -tranche 99.0 -tranche 97.0 -tranche 96.0 -tranche 95.0 -tranche 94.0 -tranche 93.5 -tranche 93.0 -tranche 92.0 -tranche 91.0 -tranche 90.0 \
+	-an FS -an ReadPosRankSum -an MQRankSum -an QD -an SOR -an DP \
+	-mode INDEL \
+	--max-gaussians 4 \
+	--rscript-file ${indelR} \
+	-resource:mills,known=false,training=true,truth=true,prior=12 ${mills} \
+	-resource:axiomPoly,known=false,training=true,truth=false,prior=10 ${axiomPoly} \
+	-resource:dbsnp,known=true,training=false,truth=false,prior=2 ${dbsnp} \
+	-O ${indelRecal} \
+	--tranches-file ${indelTranches} >>${logdir}/${cohort}.oe 2>&1
+	
+echo "$(date): SNP VariantRecalibrator" >>${logdir}/${cohort}.oe 2>&1
+# Calculate VQSLOD tranches for SNPs using VariantRecalibrator
+gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
+	-V ${sitesonly} \
+	--trust-all-polymorphic \
+	-tranche 100.0 -tranche 99.95 -tranche 99.9 -tranche 99.8 -tranche 99.6 -tranche 99.5 -tranche 99.4 -tranche 99.3 -tranche 99.0 -tranche 98.0 -tranche 97.0 -tranche 90.0 \
+	-an QD -an MQRankSum -an ReadPosRankSum -an FS -an MQ -an SOR -an DP \
+	-mode SNP \
+	--max-gaussians 6 \
+	--rscript-file ${snpR} \
+	-resource:hapmap,known=false,training=true,truth=true,prior=15 ${hapmap} \
+	-resource:omni,known=false,training=true,truth=true,prior=12 ${omni} \
+	-resource:1000G,known=false,training=true,truth=false,prior=10 ${thousandg} \
+	-resource:dbsnp,known=true,training=false,truth=false,prior=7 ${dbsnp} \
+	-O ${snpRecal} \
+	--tranches-file ${snpTranches} >>${logdir}/${cohort}.oe 2>&1
+
+# Filter indels on VQSLOD using ApplyVQSR
+echo "$(date): INDEL ApplyVQSR to ${excesshet}" >>${logdir}/${cohort}.oe 2>&1
+gatk --java-options "-Xmx42g -Xms42g" \
+	ApplyVQSR \
+	-V ${excesshet} \
+	--recal-file ${indelRecal} \
+	--tranches-file ${indelTranches} \
+	--truth-sensitivity-filter-level 99.7 \
+	--create-output-variant-index true \
+	-mode INDEL \
+	-O ${indelvqsr} >>${logdir}/${cohort}.oe 2>&1
+
+echo "$(date): SNP ApplyVQSR to ${indelvqsr}" >>${logdir}/${cohort}.oe 2>&1
+# Filter SNPs on VQSLOD using ApplyVQSR
+gatk --java-options "-Xmx42g -Xms42g" \
+	ApplyVQSR \
+	-V ${indelvqsr} \
+	--recal-file ${snpRecal} \
+	--tranches-file ${snpTranches} \
+	--truth-sensitivity-filter-level 99.7 \
+	--create-output-variant-index true \
+	-mode SNP \
+	--create-output-variant-md5 \
+	-O ${finalvqsr} >>${logdir}/${cohort}.oe 2>&1
+
+echo "$(date): Evaluate final recalibrated VCF file with ${dbsnp}" >>${logdir}/${cohort}.oe 2>&1
+# Evaluate the filtered callset, compare with known population callset
+gatk CollectVariantCallingMetrics \
+	-I ${finalvqsr} \
+	--DBSNP ${dbsnp} \
+	-SD ${dict} \
+	-O ${metrics} >>${logdir}/${cohort}.oe 2>&1
+
+
+# 6 samples (human)
+# Job usage: 4CPU, 27.55Gb mem, 00:48:33 walltime, 0.3 SU, express
+# Variant filtration "-Xmx3g -Xms3g", all other commands "-Xmx24g -Xms24g"
