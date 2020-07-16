@@ -5,9 +5,7 @@
 
 This is not for first timers. :)
 
-The following will perform germline short variant calling for all samples present in `../samples.config`. Clone this repository and run scripts in the `Germline-ShortV` directory. 
-
-Adjust compute resources requested in the `.pbs` files according to the number of samples in `../samples.config`.
+The following will perform germline short variant calling for all samples present in `../samples.config`. Clone this repository and run scripts in the `Germline-ShortV` directory. Adjust compute resources requested in the `.pbs` files according to the number of samples in `../samples.config`.
 
 1. Run haplotype caller by:
   * `sh gatk4_hc_make_input.sh samples`
