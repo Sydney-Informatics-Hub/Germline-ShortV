@@ -3,7 +3,7 @@
 
 # Quickstart
 
-This is not for first timers. :)
+This quickstart is not for first timers. :)
 
 The following will perform germline short variant calling for all samples present in `../samples.config`. Clone this repository and run scripts in the `Germline-ShortV` directory. Adjust compute resources requested in the `.pbs` files according to the number of samples in `../samples.config`.
 
@@ -44,10 +44,20 @@ The Germline-ShortV workflow implements GATK 4’s Best Practices for Germline s
 
 ## Human datasets
 
-There are six PBS jobs included in Germline-ShortV for samples which have been aligned to the human reference genome (GRCh38/hg38 + ALT contigs) using the FASTQ-BAM pipeline. The preparatory files from the jobs in “Prepare reference” are included in the Germline-ShortV GitHub repository and the “Index” and “Split intervals” jobs can be skipped for human datasets (Figure 2). The first job “HaplotypeCaller” calls raw SNPs and indels at 3,200 evenly-sized genomic intervals and multiple samples in parallel. “GatherVCFs” gathers per interval VCF files into per sample GVCF files, operating at multiple samples in parallel. We recommend backing up per sample GVCFs into the University of Sydney’s Research Data Store or similar. The sample GVCFs can be included in “Joint-calling” jobs in future projects as more samples are sequenced and are included in your cohort, saving compute resources. 
+There are six PBS jobs included in Germline-ShortV for samples which have been aligned to the human reference genome (GRCh38/hg38 + ALT contigs) using the [FASTQ-BAM](https://github.com/Sydney-Informatics-Hub/FASTQ-BAM) pipeline. The first job “HaplotypeCaller” calls raw SNPs and indels at 3,200 evenly-sized genomic intervals and multiple samples in parallel. “GatherVCFs” gathers per interval VCF files into per sample GVCF files, operating at multiple samples in parallel. We recommend backing up per sample GVCFs into the University of Sydney’s Research Data Store or similar. The sample GVCFs can be included in “Joint-calling” jobs in future projects as more samples are sequenced and are included in your cohort, saving compute resources. 
 
 “Joint calling” includes three PBS jobs and commences with multiple per sample GVCF files generated from the two jobs in “Variant calling”. The job “GenomicsDBImport” consolidates sample GVCFs into databases and “GenotypeGVCFs” joint-calls variants at the pre-defined 3,200 genomic intervals in parallel. The resulting multiple-sample VCFs obtained for 3,200 intervals are then gathered with GatherVCFs to obtain a single cohort VCF file. Variants in the cohort VCF file are filtered and refined, first by removing sites with excess heterozygosity (indicative of technical artefacts). GATK’s variant quality score recalibration (VQSR) methods including the tools VariantRecalibrator and ApplyVQSR are then applied to SNPs and indels separately. VQSR is a machine learning method that uses high quality variant resources (1000 Genomes, omni, hapmap) as a training set to profile properties of probable true variants from technical artefacts. Variant calling metrics are then obtained from the Analysis ready cohort VCFs containing SNPs and indels. These files should be backed up before proceeding with downstream analysis. 
 
 ## Other organisms
 
 
+# Set up
+
+## GRCh38/hg38 + ALT contigs
+
+The Germline-ShortV pipeline works seamlessly with the [FASTQ-BAM](https://github.com/Sydney-Informatics-Hub/FASTQ-BAM) pipeline. The scripts use relative paths, so correct set-up is important. Upon completion of [FASTQ-BAM](https://github.com/Sydney-Informatics-Hub/FASTQ-BAM):
+
+1. Change to the working directory where your final bams were created.
+* ensure you have a `.config` file, that is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config from [FASTQ-BAM](https://github.com/Sydney-Informatics-Hub/FASTQ-BAM) can be used.
+* ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `.config` file. 
+2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
