@@ -3,6 +3,8 @@
 
 # Quickstart
 
+This is not for first timers. :)
+
 Clone this repository and run scripts in the `Germline-ShortV` directory.
 
 1. Run haplotype caller by:
