@@ -77,4 +77,5 @@ Once you have followed the __Set up__ instructions, you can follow the instructi
 # References
 
 GATK4: Van der Auwera et al. 2013 https://currentprotocols.onlinelibrary.wiley.com/doi/abs/10.1002/0471250953.bi1110s43
+
 OpenMPI: Graham et al. 2015 https://dl.acm.org/doi/10.1007/11752578_29
