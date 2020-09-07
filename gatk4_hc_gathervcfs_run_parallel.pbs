@@ -7,8 +7,8 @@
 # Usage: Adjust <project> and compute resource requests following the guide
 # below, then qsub gatk4_hc_gathervcfs_run_parallel.pbs
 # Job resource requirements:
-# 6 CPU, 20Gb memory per normal sample in ../<cohort>.config
-# Request 1 normal node per 8 samples
+# 1CPU, 20Gb memory per normal sample in ../<cohort>.config
+# Using normalbw queue, request 48 CPU, 256Gb mem per 24-32 samples
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
 # Date last modified: 17/08/2020
@@ -28,7 +28,7 @@
 #PBS -P <project>
 #PBS -N gathervcfs
 #PBS -l walltime=02:00:00,ncpus=96,mem=384GB,wd
-#PBS -q normal
+#PBS -q normalbw
 #PBS -W umask=022
 #PBS -l storage=scratch/<project>
 #PBS -o ./Logs/gatk4_gathervcfs.o
@@ -46,7 +46,7 @@ set -e
 #########################################################
 
 # NCPUs = CPUs per task
-NCPUS=6
+NCPUS=2
 			
 # SCRIPT
 SCRIPT=./gatk4_hc_gathervcfs.sh
