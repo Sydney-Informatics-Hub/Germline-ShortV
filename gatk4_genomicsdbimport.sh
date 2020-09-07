@@ -1,9 +1,27 @@
 #!/bin/bash
 
-# Consolidate interval VCFs across multiple samples for GenotypeGVCFs (joint-calling)
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Consolidate interval VCFs across multiple 
+# samples for GenotypeGVCFs (joint-calling)
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
 module load gatk/4.1.2.0
-module load samtools/1.10
 
 ref=`echo $1 | cut -d ',' -f 1`
 cohort=`echo $1 | cut -d ',' -f 2`
