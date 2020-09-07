@@ -1,9 +1,27 @@
 #!/bin/bash
 
-# Consolidate interval VCFs across multiple samples for GenotypeGVCFs (joint-calling)
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs gatk4 GenomicsDBImport with
+# gatk4_genomicsdbimport_missing_run_parallel.pbs
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
 module load gatk/4.1.2.0
-module load samtools/1.10
 
 ref=`echo $1 | cut -d ',' -f 1`
 cohort=`echo $1 | cut -d ',' -f 2`
@@ -44,10 +62,3 @@ gatk --java-options "-Xmx360g -Xms360g" \
 	--intervals ${interval} 2>>${logdir}/${index}.e
 
 echo "$(date) : Finished GATK 4 consolidate VCFs with GenomicsDBImport for: ${out}"
-
-#Caveats
-#IMPORTANT: The -Xmx value the tool is run with should be less than the total amount of physical memory available by at least a few GB, as the native TileDB library #requires additional memory on top of the Java memory. Failure to leave enough memory for the native code can result in confusing error messages!
-#At least one interval must be provided
-#Input GVCFs cannot contain multiple entries for a single genomic position
-#The --genomicsdb-workspace-path must point to a non-existent or empty directory.
-#GenomicsDBImport uses temporary disk storage during import. The amount of temporary disk storage required can exceed the space available, especially when specifying a #large number of intervals. The command line argument `--tmp-dir` can be used to specify an alternate temporary storage location with sufficient space..
