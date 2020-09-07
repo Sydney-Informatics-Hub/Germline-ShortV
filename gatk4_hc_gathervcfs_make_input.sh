@@ -1,11 +1,34 @@
 #! /bin/bash
-# Create input for: gatk4_hc_gathervcfs_run_parallel.pbs
+
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: 
+# Creates input file for gatk4_hc_gathervcfs_run_parallel.pbs
+# Usage:
+# sh gatk4_hc_gathervcfs_make_input.sh <cohort> 
+# to create inputs for ../<cohort>.config
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
 set -e
 
 if [ -z "$1" ]
 then
-	echo "Please run this script with the base name of your config file, e.g. sh gatk4_hc_make_input.sh samples_batch1"
+	echo "Please run this script with the base name of ../<cohort>.config e.g. sh gatk4_hc_gathervcfs_make_input.sh <cohort>"
 	exit
 fi
 
