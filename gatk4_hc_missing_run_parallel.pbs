@@ -1,38 +1,67 @@
 #!/bin/bash
 
-# Run GATK HC using scatter-gather method
-# Runs gatk4_hc.sh tasks in parallel
-# 1 task performs HC for 1 interval
-# 1 task requires 1 CPU, 4GB mem
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs gatk4 HaplotypeCaller with
+# gatk4_hc_missing run_parallel.pbs using 
+# gatk4_hc_missing.inputs
+# Usage:
+# Replace <project> with your project short code
+# gatk4_hc_missing run_parallel.pbs
+# qsub 
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
-#PBS -P qa2
-#PBS -N Batch5_missing
-#PBS -l walltime=00:05:00,ncpus=2,mem=8GB,wd
+#PBS -P <project>
+#PBS -N hc_missing
+#PBS -l walltime=01:00:00,ncpus=48,mem=192GB,wd
 #PBS -q normal
 #PBS -W umask=022
-#PBS -l storage=scratch/gq19+scratch/public
-#PBS -o ./Logs/gatk4_hc/batch1-1_missing.o
-#PBS -e ./Logs/gatk4_hc/batch1-1_missing.e
+#PBS -l storage=scratch/<project>
+#PBS -o ./Logs/gatk4_hc_missing.o
+#PBS -e ./Logs/gatk4_hc_missing.e
 
 module load openmpi/4.0.2
+module load nci-parallel/1.0.0
 
-mkdir -p ./Logs/gatk4_hc
 set -e
 
-NCPUS=1 	
-nt=1
+mkdir -p ./Logs/gatk4_hc
+
+#########################################################
+# Do not edit below this line (unless running on a node that
+# does not have 48 CPU, in which case edit the value of 'CPN'
+#########################################################
+
+# NCPUs = CPUs per task
+NCPUS=1
 			
 # SCRIPT
 SCRIPT=./gatk4_hc.sh
-INPUTS=./Inputs/gatk4_hc_missing.inputs
-#INPUTS_LOGS=./Inputs/gatk4_hc_check_logs.inputs
+INPUTS=./Inputs/gatk4_hc.inputs
 
-
-#Generally don't change this (for normal nodes):
-CPN=48 #CPUs per node
+CPN=48 #CPUs per node 
 M=$(( CPN / NCPUS )) #tasks per node
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
 
-mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
+mpirun --np $((M * PBS_NCPUS / 48)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
 
