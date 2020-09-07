@@ -1,13 +1,33 @@
 #! /bin/bash
 
-# After running gatk4_hc_run_parallel.pbs, check that all .vcf and .vcf.idx files
-# have been created for each interval for each sample
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description/usage: 
+# After running gatk4_hc_run_parallel.pbs, checks
+# all .vcf and .vcf.idx files exist and are not empty
 # If not, this script creates gatk4_hc_missing.inputs
-# Then run gatk4_hc_missing_run_parallel.pbs to re-run these in parallel, with a single node
+# Then run gatk4_hc_missing_run_parallel.pbs 
+# to re-run these in parallel, with a single node
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
 if [ -z "$1" ]
 then
-        echo "Please run this script with the base name of your config file, e.g. sh gatk4_hc__missing_make_input.sh samples_batch1"
+        echo "Please run this script with the base name of your <cohort>.config file, e.g. sh gatk4_hc_missing_make_input.sh <cohort>"
         exit
 fi
 
@@ -63,8 +83,6 @@ for sample in "${samples[@]}"; do
 		echo "$(date): ${sample} has ${num_missing} missing vcf or vcf.idx files."
 		total_missing=$(($total_missing+$num_missing))
 	fi
-	# Write a list of existing log files to later check for errors in parallel
-	# find ${logs}/${sample} -name *.oe -type f >> ${inputlogs}
 done
 
 echo "$(date): There are $total_missing vcf files in $cohort. Please run gatk4_hc_missing_run_parallel.pbs"
