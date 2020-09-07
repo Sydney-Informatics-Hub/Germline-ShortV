@@ -1,26 +1,62 @@
 #!/bin/bash
 
-# Consolidate GVCFs - re-run intervals that failed
-# This merges scattered VCFs across samples
-# Result is 3200 VCF GenomicsDImport "databases", 1 for each interval
-# Each one is used as input for GenotypeGVCFs
-# Memory dependant on number of samples and coverage
-# ~35GB mem is required per task for 6 samples.
-# Check interval_duration_memory.txt for failed tasks and memory used per int
-# Depending on the number of task failing, increase CPU/mem accordingly
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs gatk4_genomicsdbimport_missing.sh in parallel using inputs
+# created from gatk4_genomicsdbimport_missing_make_input.sh
+# These scripts consolidate GVCFs for multiple samples at 3200 
+# genomic intervals that failed to be created by gatk4_genomicsdbimport step.
+# The final result is 3200 GenomicsDBImport "databases"
+# required for GenotypeGVCFs (next step for joint-calling)
+# Usage: Adjust <project>, then qsub gatk4_genomicsdbimport_missing_run_parallel.pbs
+# Note: This job is memory dependant. The default settings of the script
+# work for a cohort ~200 samples. Larger cohorts and difficult genomic
+# intervals may require more memory. If this is the case, adjust NCPUs in this
+# script, nt= in  gatk4_genomicsdbimport_missing_make_input.sh 
+# and gatk --java-options "-Xmx360g -Xms360g" in gatk4_genomicsdbimport_missing.sh
+# Job resource requirements:
+# Memory increases with cohort size/complex intervals 
+#   NCPUS=12 (default) will allocate ~375GB mem per task on hugemem node
+#   This is larger than gatk4_genomicsdbimport's default of 
+#   NCPUS=2, ~62.5GB mem per task
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
-#PBS -P oj47
-#PBS -N oscc_missing_192cpu_6000gb
+#PBS -P <project>
+#PBS -N genomicsdbimport_missing
 #PBS -l walltime=03:00:00,ncpus=192,mem=6000GB,wd
 #PBS -q hugemem
 #PBS -W umask=022
-#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
-#PBS -o ./Logs/gatk4_genomicsdbimport/oscc_missing_192cpu_6000gb.o
-#PBS -e ./Logs/gatk4_genomicsdbimport/oscc_missing_192cpu_6000gb.e
+#PBS -l storage=scratch/<project>
+#PBS -o ./Logs/gatk4_genomicsdbimport_missing.o
+#PBS -e ./Logs/gatk4_genomicsdbimport_missing.e
 
 module load openmpi/4.0.2
+module load nci-parallel/1.0.0
 
 set -e
+
+#########################################################
+# Do not edit below this line (unless running on a node that
+# does not have 48 CPU, in which case edit the value of 'CPN'
+#########################################################
+
+# NCPUs = CPUs per task
+NCPUS=12
 
 # SCRIPT
 SCRIPT=./gatk4_genomicsdbimport_missing.sh
@@ -28,10 +64,13 @@ INPUTS=./Inputs/gatk4_genomicsdbimport_missing.inputs
 
 echo "$(date) : GATK 4 Consolidate VCFs across samples with GenomicsDBImport."
 
-# M = Number of tasks per node
-# NCPUs = CPUs per task
-M=4
-NCPUS=12
+CPN=48 #CPUs per node 
+M=$(( CPN / NCPUS )) #tasks per node
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
-mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
+
+mpirun --np $((M * PBS_NCPUS / 48)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
