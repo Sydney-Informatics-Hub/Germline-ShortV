@@ -3,12 +3,16 @@
 #########################################################
 #
 # Platform: NCI Gadi HPC
-# Description/usage: 
-# After running gatk4_hc_run_parallel.pbs, checks
-# all .vcf and .vcf.idx files exist and are not empty
+# Description: 
+# Checks all .vcf and .vcf.idx files exist and are not empty
+# after running gatk4_hc_run_parallel.pbs. 
 # If not, this script creates gatk4_hc_missing.inputs
+# Usage: 
+# sh gatk4_hc_missing_make_input <cohort> 
+# To check missing .vcf and .vcf.idx for <cohort>.config
+# Run when gatk4_hc_run_parallel.pbs is complete. 
+# Creates gatk4_hc_missing.inputs if there are missing files
 # Then run gatk4_hc_missing_run_parallel.pbs 
-# to re-run these in parallel, with a single node
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
 # Date last modified: 17/08/2020
