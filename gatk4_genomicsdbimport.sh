@@ -52,7 +52,7 @@ echo "$(date) : Start GATK 4 GenomicsDBImport. Reference: ${ref}; Cohort: ${coho
 #mkdir -p ${out}
 #cd ${out}
 
-gatk --java-options "-Xmx40g -Xms40g" \
+gatk --java-options "-Xmx58g -Xms58g" \
 	GenomicsDBImport \
 	--sample-name-map ${sample_map} \
 	--overwrite-existing-genomicsdb-workspace \
