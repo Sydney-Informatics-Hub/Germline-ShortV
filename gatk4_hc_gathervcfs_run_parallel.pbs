@@ -1,30 +1,51 @@
 #!/bin/bash
 
-# Merge HC per interval VCFs into a single sample GVCF
-# Samples are gzipped and tabix indexed
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs gatk4_hc_gathervcfs.sh in parallel
+# Usage: Adjust <project> and compute resource requests following the guide
+# below, then qsub gatk4_hc_gathervcfs_run_parallel.pbs
+# Job resource requirements:
+# 6 CPU, 20Gb memory per normal sample in ../<cohort>.config
+# Request 1 normal node per 8 samples
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
-# Job resources
-# 6 samples: 
-# Requested: 48 CPU 192 Gb mem, 2:30:00
-# Used: 48 CPU, 113.3 Gb, 0:32:95 walltime (2:50:55 CPU time). (~20Gb mem per sample)
-
-#PBS -P qa2
+#PBS -P <project>
 #PBS -N gathervcfs
 #PBS -l walltime=02:00:00,ncpus=96,mem=384GB,wd
 #PBS -q normal
 #PBS -W umask=022
-#PBS -l storage=scratch/gq19+scratch/public
+#PBS -l storage=scratch/<project>
 #PBS -o ./Logs/gatk4_gathervcfs.o
 #PBS -e ./Logs/gatk4_gathervcfs.e
 #PBS -m ae
 
 module load openmpi/4.0.2
+module load nci-parallel/1.0.0
 
 set -e
-			
-# NCPUs = CPUs per task (ensure this is a multiple of 12, hardware configured in 2 x (2x12) fashion on normal nodes)
-# M= Number of tasks per node
-M=8
+
+#########################################################
+# Do not edit below this line (unless running on a node that
+# does not have 48 CPU, in which case edit the value of 'CPN'
+#########################################################
+
+# NCPUs = CPUs per task
 NCPUS=6
 			
 # SCRIPT
@@ -33,5 +54,13 @@ INPUTS=./Inputs/gatk4_hc_gathervcfs.inputs
 
 echo "$(date) : GATK 4 GatherVcfs."
 
+CPN=48 #CPUs per node 
+M=$(( CPN / NCPUS )) #tasks per node
+
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
-mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
+
+mpirun --np $((M * PBS_NCPUS / 48)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
