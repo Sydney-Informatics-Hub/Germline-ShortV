@@ -10,8 +10,8 @@
 # below, then qsub gatk4_hc_run_parallel.pbs
 # Job resource requirements:
 # walltime=02:00:00 (job expected to complete in ~1 hour)
-# ncpus=96*N (N=number of samples in <cohort>.config)
-# mem=192*N GB (N=number of samples in <cohort>.config)
+# ncpus=96*N (N=number of samples in ../<cohort>.config)
+# mem=192*N GB (N=number of samples in ../<cohort>.config)
 # Per task requirements:
 # 1 task requires 1 CPU, 4GB mem
 # Author: Tracy Chew
@@ -36,8 +36,8 @@
 #PBS -q normal
 #PBS -W umask=022
 #PBS -l storage=scratch/<project>
-#PBS -o ./Logs/hc.o
-#PBS -e ./Logs/hc.e
+#PBS -o ./Logs/gatk4_hc.o
+#PBS -e ./Logs/gatk4_hc.e
 
 module load openmpi/4.0.2
 module load nci-parallel/1.0.0
