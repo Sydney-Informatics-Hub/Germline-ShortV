@@ -1,25 +1,61 @@
 #!/bin/bash
 
-# Consolidate GVCFs
-# This merges scattered VCFs across samples
-# Result is 3200 VCF GenomicsDImport "databases", 1 for each interval
-# Each one is used as input for GenotypeGVCFs
-# ~35GB mem is required per task for 6 samples.
-# 48Gb mem (-Xmx 40) per task for 27 TCGA samples (01:53:57)
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs gatk4_genomicsdbimport.sh in parallel using inputs
+# created from gatk4_genomicsdbimport_make_input.sh
+# These scripts consolidate GVCFs for multiple samples at 3200 
+# genomic intervals. The result is 3200 GenomicsDBImport "databases"
+# required for GenotypeGVCFs (next step for joint-calling)
+# Usage: Adjust <project> and compute resource requests following the guide
+# below, then qsub gatk4_genomicsdbimport_run_parallel.pbs
+# Job resource requirements:
+# Memory increases with cohort size. 
+#   NCPUS=2 (default) will allocate ~62.5GB per task on hugemem node
+#   - 35GB memory per task (of 3200 tasks) required for 6 samples
+#   - 48GB memory per task (of 3200 tasks) required for 27 samples 
+#   - 64GB memory per task (of 3200 tasks) required for 190 samples 
+#         Note: for large cohorts (e.g. n=190), you will likely need to run
+#         gatk4_genomicsdbimport_missing steps for some tasks with 375Gb memory per task
+#         See gatk4_genomicsdbimport_missing_run_parallel.pbs for more info
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
-
-#PBS -P oj47
+#PBS -P <project>
 #PBS -N genomicsdbimport
-#PBS -l walltime=03:00:00,ncpus=960,mem=3840GB,wd
+#PBS -l walltime=03:00:00,ncpus=48,mem=1500GB,wd
 #PBS -q normal
 #PBS -W umask=022
-#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
+#PBS -l storage=scratch/<project>
 #PBS -o ./Logs/gatk4_genomicsdbimport/genomicsdbimport.o
 #PBS -e ./Logs/gatk4_genomicsdbimport/genomicsdbimport.e
 
 module load openmpi/4.0.2
+module load nci-parallel/1.0.0
 
 set -e
+
+#########################################################
+# Do not edit below this line (unless running on a node that
+# does not have 48 CPU, in which case edit the value of 'CPN'
+#########################################################
+
+# NCPUs = CPUs per task
+NCPUS=2
 
 # SCRIPT
 SCRIPT=./gatk4_genomicsdbimport.sh
@@ -27,57 +63,13 @@ INPUTS=./Inputs/gatk4_genomicsdbimport.inputs
 
 echo "$(date) : GATK 4 Consolidate VCFs across samples with GenomicsDBImport."
 
-# M = Number of tasks per node
-# NCPUs = CPUs per task
-M=4
-NCPUS=12
+CPN=48 #CPUs per node 
+M=$(( CPN / NCPUS )) #tasks per node
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
-mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
 
-
-## TEST NOTES
-## Memory tests using normal 16 CPU 64 Gb mem nodes
-# 1 CPU 2GB mem - not enough, 43/3200 sucessful
-
-# 4 CPU 16GB mem --java-options "-Xmx12g -Xms12g" - not enough, 1348/3200 successful
-# #PBS -l walltime=03:00:00,ncpus=64,mem=256GB,wd
-# Concurrent tasks=16
-
-## Memory tests using normal 16CPU 128 Gb mem nodes
-# 4 CPU 32 Gb mem (--java-options "-Xmx24g -Xms24g") - not enough, 1744/3200 successful
-# #PBS -l walltime=04:00:00,ncpus=128,mem=1024GB,wd
-# Concurrent tasks= 32
-
-# Try setting -Xmx to less, as mem usage in log file hasn't been reached
-# 4 CPU 32 Gb mem (--java-options "-Xmx16g -Xms16g") - not enough, 1705/3200 successful
-# #PBS -l walltime=02:00:00,ncpus=128,mem=1024GB,wd
-# Concurrent tasks= 32
-
-## THIS WORKS!!! YAYYYY - For Jaime's
-# Change to normalbw nodes (28CPU, 256Gb mem), as these will remain on Gadi
-## Let's try setting --tmp-dir using the best compute resources so far
-# 4 CPU 32 Gb mem (--java-options "-Xmx24g -Xms24g", --tmp-dir).  5 nodes
-# #PBS -l walltime=04:00:00,ncpus=140,mem=1280GB,wd
-# CPU = 4 will allow ~36.6Gb per task
-# Concurrent tasks= 35
-# checking total runtime memory per task in .e file shows all tasks use very close to 24Gb mem
-# walltime was 01:42:59
-
-# Benchmark hugemem nodes - MAX YOU CAN REQUEST IS 1 NODE (24 hrs)
-# 28 CPU, 1Tb memory = 28 tasks, ~35.7Gb memory per task
-# 1 CPU 32 Gb mem (--java-options "-Xmx24g -Xms24g", --tmp-dir).
-# #PBS -l walltime=06:00:00,ncpus=28,mem=1000GB,wd
-# 
-
-## POSSIBLE CAVEATS...
-# Memory may be dependant on the number of samples
-# Could do a small test - 2, 4, 6 samples
-
-# This is not enough for Vanessa's 6 sample bams, try
-# #PBS -l walltime=06:00:00,ncpus=960,mem=3840GB,wd
-# # 5 tasks per node, allows ~38.4Gb per task, (--java-options "-Xmx28g -Xms28g", --tmp-dir)
-
-
-
-
+mpirun --np $((M * PBS_NCPUS / 48)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
