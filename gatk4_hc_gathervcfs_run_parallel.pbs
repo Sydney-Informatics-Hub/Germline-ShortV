@@ -8,7 +8,8 @@
 # below, then qsub gatk4_hc_gathervcfs_run_parallel.pbs
 # Job resource requirements:
 # 1CPU, 20Gb memory per normal sample in ../<cohort>.config
-# Using normalbw queue, request 48 CPU, 256Gb mem per 24-32 samples
+# Using normalbw queue, request 48 CPU, 256Gb mem per 24-34 samples
+# walltime=00:41:48 benchmarked for 34 human samples
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
 # Date last modified: 17/08/2020
