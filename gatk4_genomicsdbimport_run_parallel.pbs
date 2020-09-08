@@ -41,8 +41,8 @@
 #PBS -q normal
 #PBS -W umask=022
 #PBS -l storage=scratch/<project>
-#PBS -o ./Logs/gatk4_genomicsdbimport/genomicsdbimport.o
-#PBS -e ./Logs/gatk4_genomicsdbimport/genomicsdbimport.e
+#PBS -o ./Logs/gatk4_genomicsdbimport.o
+#PBS -e ./Logs/gatk4_genomicsdbimport.e
 
 module load openmpi/4.0.2
 module load nci-parallel/1.0.0
