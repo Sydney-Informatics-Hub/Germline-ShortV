@@ -1,6 +1,31 @@
 
 #!/usr/bin/perl
 
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: This script is run by gatk4_genomicsdbimport_missing_make_input.sh
+# to check 3200 interval log files from gatk4_genomicsdbimport_run_parallel.pbs job
+# It checks if the log file exists and greps for "error"
+# For each interval, duration and memory will be printed. If an error is detected,
+# "NA" will be printed and gatk4_genomicsdbimport_missing_make_input.sh will 
+# write this interval to gatk4_genomicsdbimport.inputs to be re-run
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
+
 use strict;
 use warnings;
 
