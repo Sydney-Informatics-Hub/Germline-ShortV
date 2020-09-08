@@ -1,13 +1,32 @@
 #! /bin/bash
 
-# Create input file to run gatk4_genotypegvcfs_run_parallel.pbs
-# Operates on per interval GenomicsDBImport database files
-# Performs joint genotyping (output is uncalibrated jointly genotyped VCF)
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Creates input file for gatk4_genotypegvcfs_run_parallel.pbs
+# Performs joint-genotyping, operating on GenomicsDBImport database
+# files per genomic interval. The output is a multi-sample, unrecalibrated VCF.
+# Usage: sh gatk4_genotypegvcfs_make_input.sh <cohort>
+# where <cohort> is the base name of ../<cohort>.config
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
 
 if [ -z "$1" ]
 then
-	echo "Please run this script with the base name of your config file, e.g. sh gatk4_hc_make_input.sh samples_batch1"
-	exit
+	echo "Please run this script with the base name of ../<cohort>.config e.g. sh gatk4_genotypegvcfs_make_input.sh <cohort>"
 fi
 
 cohort=$1
