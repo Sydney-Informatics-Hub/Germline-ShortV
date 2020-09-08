@@ -49,13 +49,13 @@ module load nci-parallel/1.0.0
 
 set -e
 
+# NCPUs = CPUs per task
+NCPUS=2
+
 #########################################################
 # Do not edit below this line (unless running on a node that
 # does not have 48 CPU, in which case edit the value of 'CPN'
 #########################################################
-
-# NCPUs = CPUs per task
-NCPUS=2
 
 # SCRIPT
 SCRIPT=./gatk4_genomicsdbimport.sh
