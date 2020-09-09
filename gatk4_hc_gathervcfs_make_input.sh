@@ -55,7 +55,7 @@ rm -rf ${INPUTS}/gatk4_hc_gathervcfs.inputs
 for sample in "${samples[@]}"; do
 	
 	args=${INPUTS}/gatk4_hc_gathervcfs_${sample}\.args
-	out=${vcfdir}/${sample}/${sample}.g.vcf.gz
+	out=../Final_Germline-ShortV_GVCFs/${sample}.g.vcf.gz
 
 	rm -rf ${args}
 	
