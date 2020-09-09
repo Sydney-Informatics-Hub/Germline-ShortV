@@ -1,43 +1,92 @@
 #!/bin/bash
 
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Runs Runs gatk4_genotypegvcfs.sh in parallel using inputs
+# created from gatk4_genotypegvcfs_missing_make_input.sh
+# Run after gatk4_genotypegvcfs_run_parallel.pbs
+# These scripts perform joint-calling, producing genotypes for multiple
+# samples. Output includes an unrecalibrated/filtered VCF file per interval
+# which are later gathered into a single VCF.
+# Usage: Adjust <project> and compute resource requests following the guide
+# below, then qsub gatk4_genomicsdbimport_run_parallel.pbs
+# Job resource requirements:
+# Usage: Adjust <project> and compute resource requests if required.
+# Adjusting resources is usually not necessary and missing inputs tend 
+# to be caused 
+# Job resource requirements:
+#   ~32GB mem per task required
+#   Hugemem nodes are most SU efficient, but there is a restriction
+#   to max nodes that can be requested
+#   1CPU per task on hugemembw allows ~36Gb mem per CPU
+#     - not yet benchmarked on this node, hardware is slower than hugemem nodes
+#   1CPU per task on hugemem allows ~31Gb mem per CPU
+#     - fastest to run this in chunks my splitting up inputs file into 5
+#     - even "chunks", and changing the INPUTS= variable in this PBS script
+#       submitting this job 5 times requesting max resources possible per job
+#       on hugemem node, ie:
+#       #PBS -l walltime=06:00:00,ncpus=140,mem=6000GB,wd
+#        walltime 00:54:06 - 02:04:35 for 34 samples, ~640 intervals each
+#     - alternatively, request
+#       #PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
+
 # Re-run intervals for genotypegvcfs step
 # GenotypeGVCFs using consolidated data from
 # "gatk4_consolidate_vcfs.pbs" or gatk GenomicsDBImport step
 # Each "task" operates on one interval
 
-#PBS -P oj47
-#PBS -N missing_240cpu_960gb
-#PBS -l walltime=02:00:00,ncpus=240,mem=960GB,wd
-#PBS -q normal
+#PBS -P <project>
+#PBS -N genotypegvcfs_missing
+#PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
+#PBS -q hugemem
 #PBS -W umask=022
-#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
-#PBS -o ./Logs/gatk4_genotypegvcfs/missing_240cpu_960gb.o
-#PBS -e ./Logs/gatk4_genotypegvcfs/missing_240cpu_960gb.e
+#PBS -l storage=scratch/<project>
+#PBS -o ./Logs/gatk4_genotypegvcfs_missing.o
+#PBS -e ./Logs/gatk4_genotypegvcfs_missing.e
 
 module load openmpi/4.0.2
+module load nci-parallel/1.0.0
 
 set -e
 
+# NCPUs = CPUs per task
+NCPUS=2
+
+INPUTS=./Inputs/gatk4_genotypegvcfs.inputs
+
+#########################################################
+# Do not edit below this line (unless running on a node that
+# does not have 48 CPU, in which case edit the value of 'CPN'
+#########################################################
+
 # SCRIPT
 SCRIPT=./gatk4_genotypegvcfs.sh
-INPUTS=./Inputs/gatk4_genotypegvcfs_missing.inputs
 
-# M = Number of tasks per node
-# NCPUs = CPUs per task
-M=8
-NCPUS=6
+CPN=48 #CPUs per node 
+M=$(( CPN / NCPUS )) #tasks per node
 
 echo "$(date) : GATK 4 GenotypeGVCFs using interval databases created with GenomicsDBImport."
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
-mpirun --np $((M * PBS_NCPUS / 48)) --map-by node:PE=${NCPUS} /scratch/public/nci-parallel/nci-parallel.2 --input-file ${PBS_JOBFS}/input-file
 
-
-# Benchmarking
-# Start with same resources used that got genomicsdbimport working
-# normalbw nodes (28CPU, 256Gb mem), as these will remain on Gadi
-## Let's try setting --tmp-dir using the best compute resources so far
-# 4 CPU 32 Gb mem (--java-options "-Xmx24g -Xms24g", --tmp-dir).  5 nodes
-# #PBS -l walltime=04:00:00,ncpus=140,mem=1280GB,wd
-# CPU = 4 will allow ~36.6Gb per task
-# Concurrent tasks= 35
+mpirun --np $((M * PBS_NCPUS / 48)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
