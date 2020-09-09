@@ -14,14 +14,17 @@
 #   ~32GB mem per task required
 #   Hugemem nodes are most SU efficient, but there is a restriction
 #   to max nodes that can be requested
+#   1CPU per task on hugemem allows ~31Gb mem per CPU
+#     - fastest to run this in chunks my splitting up inputs file into 5
+#       even "chunks", and changing the INPUTS= variable in this PBS script
+#       submitting this job 5 times requesting max resources possible per job
+#       on hugemem node, ie:
+#       #PBS -l walltime=06:00:00,ncpus=140,mem=6000GB,wd
+#        walltime 00:54:06 - 02:04:35 for 34 samples, ~640 intervals each
+#     - alternatively, request
+#       #PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
 #   1CPU per task on hugemembw allows ~36Gb mem per CPU
 #     - not yet benchmarked on this node, hardware is slower than hugemem nodes
-#   1CPU per task on hugemem allows ~31Gb mem per CPU
-#     - walltime 00:54:06 - 02:04:35 for 34 samples, ~640 intervals 
-#     - fastest to run this in chunks my splitting up inputs file into 5
-#     - even "chunks", and changing the INPUTS= variable in this PBS script
-#       submitting this job 5 times (my apologies for not setting it up this
-#       way, it is on the to do list)
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
 # Date last modified: 17/08/2020
@@ -40,8 +43,8 @@
 
 #PBS -P <project>
 #PBS -N genotypegvcfs
-#PBS -l walltime=06:00:00,ncpus=140,mem=5100GB,wd
-#PBS -q hugemembw
+#PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
+#PBS -q hugemem
 #PBS -W umask=022
 #PBS -l storage=scratch/<project>
 #PBS -o ./Logs/gatk4_genotypegvcfs.o
