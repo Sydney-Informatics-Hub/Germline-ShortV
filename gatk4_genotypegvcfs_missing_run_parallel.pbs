@@ -3,7 +3,7 @@
 #########################################################
 #
 # Platform: NCI Gadi HPC
-# Description: Runs Runs gatk4_genotypegvcfs.sh in parallel using inputs
+# Description: Runs gatk4_genotypegvcfs.sh in parallel using inputs
 # created from gatk4_genotypegvcfs_missing_make_input.sh
 # Run after gatk4_genotypegvcfs_run_parallel.pbs
 # These scripts perform joint-calling, producing genotypes for multiple
@@ -13,23 +13,21 @@
 # below, then qsub gatk4_genomicsdbimport_run_parallel.pbs
 # Job resource requirements:
 # Usage: Adjust <project> and compute resource requests if required.
-# Adjusting resources is usually not necessary and missing inputs tend 
-# to be caused 
 # Job resource requirements:
 #   ~32GB mem per task required
 #   Hugemem nodes are most SU efficient, but there is a restriction
 #   to max nodes that can be requested
-#   1CPU per task on hugemembw allows ~36Gb mem per CPU
-#     - not yet benchmarked on this node, hardware is slower than hugemem nodes
 #   1CPU per task on hugemem allows ~31Gb mem per CPU
 #     - fastest to run this in chunks my splitting up inputs file into 5
-#     - even "chunks", and changing the INPUTS= variable in this PBS script
+#       even "chunks", and changing the INPUTS= variable in this PBS script
 #       submitting this job 5 times requesting max resources possible per job
 #       on hugemem node, ie:
 #       #PBS -l walltime=06:00:00,ncpus=140,mem=6000GB,wd
 #        walltime 00:54:06 - 02:04:35 for 34 samples, ~640 intervals each
 #     - alternatively, request
 #       #PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
+#   1CPU per task on hugemembw allows ~36Gb mem per CPU
+#     - not yet benchmarked on this node, hardware is slower than hugemem nodes
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
 # Date last modified: 17/08/2020
