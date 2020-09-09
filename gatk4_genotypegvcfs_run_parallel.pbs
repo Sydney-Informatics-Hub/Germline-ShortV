@@ -6,7 +6,8 @@
 # Description: Runs gatk4_genotypegvcfs.sh in parallel using inputs
 # created from gatk4_genotypegvcfs_make_input.sh
 # These scripts perform joint-calling, producing genotypes for multiple
-# samples. The output is a single, unrecalibrated/filtered VCF file.
+# samples. Output includes an unrecalibrated/filtered VCF file per interval
+# which are later gathered into a single VCF
 # Usage: Adjust <project> and compute resource requests following the guide
 # below, then qsub gatk4_genotypegvcfs_run_parallel.pbs
 # Job resource requirements:
