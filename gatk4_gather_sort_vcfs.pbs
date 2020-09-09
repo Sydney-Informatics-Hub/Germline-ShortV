@@ -1,30 +1,58 @@
 #!/bin/bash
 
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Gather per interval cohort VCFs after GenotypeGVCFs
+# into a single, sorted, cohort VCF file (containing variants only)
+# Usage: Adjust <project> and <cohort> in this script, then
+# qsub gatk4_gather_sort_vcfs.pbs
+# Resources:
+# For cohort of n=26: request of 
+# #PBS -l walltime=02:00:00,ncpus=1,mem=32GB,wd
+# used: 1CPU, 26.77Gb mem, 00:18:12 walltime, 1.99 SUs (express queue)
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
+
+
 # Gather per interval cohort VCFs after GenotypeGVCFs
 # Sort gathered g.vcf.gz file
 # OSCC usage (n = 26). 2 CPU, 26.77Gb mem, 00:18:12 walltime, 1.99 SUs (express)
 
-#PBS -P oj47
+#PBS -P <project>
 #PBS -N gather_sort
 #PBS -l walltime=02:00:00,ncpus=1,mem=32GB,wd
 #PBS -q express
 #PBS -W umask=022
-#PBS -l storage=scratch/er01+scratch/hm82+scratch/oj47+scratch/public
-#PBS -o ./Logs/gatk4_gather_sort/gather_sort.o
-#PBS -e ./Logs/gatk4_gather_sort/gather_sort.e
+#PBS -l storage=scratch/<project>
+#PBS -o ./Logs/gatk4_gather_sort.o
+#PBS -e ./Logs/gatk4_gather_sort.e
 
 set -e
 
 module load gatk/4.1.2.0
 
-cohort=samples
+cohort=<cohort>
 config=../$cohort.config
 INPUTS=./Inputs
 vcfdir=./$cohort\_GenotypeGVCFs
 logdir=./Logs/gatk4_gather_sort
 args=${INPUTS}/gatk4_gathervcfs_genotyped.inputs
-unsorted=${vcfdir}/${cohort}.g.vcf.gz
-sorted=${vcfdir}/${cohort}.sorted.g.vcf.gz
+unsorted=${vcfdir}/${cohort}.vcf.gz
+sorted=${vcfdir}/${cohort}.sorted.vcf.gz
 
 rm -rf ${args}
 
@@ -35,10 +63,10 @@ done
 mkdir -p ${logdir}
 rm -rf ${logdir}/${cohort}.oe
 
-# Gather per interval cohort vcf.gz files into a single .g.vcf.gz file
+# Gather per interval cohort vcf.gz files into a single vcf.gz file
 # Faster to gather .g.
 # Less KSU to create MD5 later
-echo "$(date) : GATK 4 GatherVcfs. Gather $cohort.interval.vcf.gz files into $cohort.g.vcf.gz"
+echo "$(date) : GATK 4 GatherVcfs. Gather $cohort.interval.vcf.gz files into $cohort.vcf.gz"
 gatk GatherVcfs \
 	--arguments_file ${args} \
 	--MAX_RECORDS_IN_RAM 100000000 \
@@ -47,10 +75,7 @@ gatk GatherVcfs \
 
 # Sort g.vcf.gz file - in case GatherVcfs fails to make index file (will happen if you output gzipped file)
 # Ensures g.vcf.gz is sorted
-echo "$(date) : GATK 4 SortVcf. Sort cohort.g.vcf.gz file and create VCF index file"
+echo "$(date) : GATK 4 SortVcf. Sort cohort.vcf.gz file and create VCF index file"
 gatk SortVcf \
 	-I ${unsorted} \
 	-O ${sorted} >> ${logdir}/${cohort}.oe 2>&1
-
-echo $PBS_JOBID
-
