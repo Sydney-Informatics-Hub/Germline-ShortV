@@ -44,11 +44,6 @@
 #
 #########################################################
 
-# Re-run intervals for genotypegvcfs step
-# GenotypeGVCFs using consolidated data from
-# "gatk4_consolidate_vcfs.pbs" or gatk GenomicsDBImport step
-# Each "task" operates on one interval
-
 #PBS -P <project>
 #PBS -N genotypegvcfs_missing
 #PBS -l walltime=24:00:00,ncpus=96,mem=3000GB,wd
