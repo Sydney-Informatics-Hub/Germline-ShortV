@@ -1,23 +1,50 @@
 #!/bin/bash
 
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Description: Run SNP and Indel VQSR and collect final
+# variant calling metrics
+# Usage: Replace <project> with your NCI project. Replace <cohort> 
+# with the basename of your ../<cohort>.config file. 
+# Usage:
+#	This job's memory requirements increase with cohort size.
+# 	- ~31Gb memory for 27 samples, walltime=1:08:43
+#	- ~176G memory for 190 samples, walltime=02:42:44
+# Author: Tracy Chew
+# tracy.chew@sydney.edu.au
+# Date last modified: 17/08/2020
+#
+# If you use this script towards a publication, please acknowledge the
+# Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested acknowledgement:
+# The authors acknowledge the scientific and technical assistance
+# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
+# Hub and resources and services from the National Computational
+# Infrastructure (NCI), which is supported by the Australian Government
+# with access facilitated by the University of Sydney.
+#
+#########################################################
+
 # Run SNP and Indel VQSR. Collect Variant Cslling Metrics
 # See bottom of script for compute resources
 
-#PBS -P oj47
+#PBS -P <project>
 #PBS -N vqsr
 #PBS -l walltime=03:00:00,ncpus=2,mem=48GB,wd
 #PBS -q express
 #PBS -W umask=022
-#PBS -l storage=scratch/er01+scratch/hm82
-#PBS -o ./Logs/gatk4_vqsr/vqsr.o
-#PBS -e ./Logs/gatk4_vqsr/vqsr.e
+#PBS -l storage=scratch/<project>
+#PBS -o ./Logs/gatk4_vqsr.o
+#PBS -e ./Logs/gatk4_vqsr.e
 
 set -e
 
 module load gatk/4.1.2.0
 module load R/3.6.1
 
-cohort=samples
+cohort=<cohort>
 config=../$cohort.config
 vcfdir=./$cohort\_GenotypeGVCFs
 vqsrdir=./$cohort\_VQSR
@@ -83,6 +110,7 @@ gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
 	--tranches-file ${indelTranches} >>${logdir}/${cohort}.oe 2>&1
 	
 echo "$(date): SNP VariantRecalibrator" >>${logdir}/${cohort}.oe 2>&1
+
 # Calculate VQSLOD tranches for SNPs using VariantRecalibrator
 gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
 	-V ${sitesonly} \
@@ -99,7 +127,7 @@ gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
 	-O ${snpRecal} \
 	--tranches-file ${snpTranches} >>${logdir}/${cohort}.oe 2>&1
 
-# Filter indels on VQSLOD using ApplyVQSR
+# Indels: Calculate VQSLOD using ApplyVQSR
 echo "$(date): INDEL ApplyVQSR to ${excesshet}" >>${logdir}/${cohort}.oe 2>&1
 gatk --java-options "-Xmx42g -Xms42g" \
 	ApplyVQSR \
@@ -112,7 +140,7 @@ gatk --java-options "-Xmx42g -Xms42g" \
 	-O ${indelvqsr} >>${logdir}/${cohort}.oe 2>&1
 
 echo "$(date): SNP ApplyVQSR to ${indelvqsr}" >>${logdir}/${cohort}.oe 2>&1
-# Filter SNPs on VQSLOD using ApplyVQSR
+# SNPs: Calculate VQSLOD using ApplyVQSR
 gatk --java-options "-Xmx42g -Xms42g" \
 	ApplyVQSR \
 	-V ${indelvqsr} \
@@ -125,14 +153,10 @@ gatk --java-options "-Xmx42g -Xms42g" \
 	-O ${finalvqsr} >>${logdir}/${cohort}.oe 2>&1
 
 echo "$(date): Evaluate final recalibrated VCF file with ${dbsnp}" >>${logdir}/${cohort}.oe 2>&1
+
 # Evaluate the filtered callset, compare with known population callset
 gatk CollectVariantCallingMetrics \
 	-I ${finalvqsr} \
 	--DBSNP ${dbsnp} \
 	-SD ${dict} \
 	-O ${metrics} >>${logdir}/${cohort}.oe 2>&1
-
-
-# 6 samples (human)
-# Job usage: 4CPU, 27.55Gb mem, 00:48:33 walltime, 0.3 SU, express
-# Variant filtration "-Xmx3g -Xms3g", all other commands "-Xmx24g -Xms24g"
