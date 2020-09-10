@@ -64,15 +64,23 @@ Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fast
 2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
 
 Your set up should look like this. 
-.
+
 ├── Fastq
+
 ├── Fastq_to_BAM_job_logs
+
 ├── Fastq_to_BAM_program_logs
+
 ├── Fastq_to_BAM_scripts_and_inputs
+
 ├── Final_bams
+
 ├── Germline-ShortV
+
 ├── Reference
+
 ├── samples.config
+
 
 `Germline-ShortV` will be your working directory.
 
