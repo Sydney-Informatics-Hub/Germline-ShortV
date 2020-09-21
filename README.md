@@ -63,24 +63,18 @@ Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fast
  * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals, known variants for variant quality score recalibration).
 2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
 
-Your set up should look like this. 
+Your high level directory structure should resemble the following:
 
+```bash
 ├── Fastq
-
 ├── Fastq_to_BAM_job_logs
-
 ├── Fastq_to_BAM_program_logs
-
 ├── Fastq_to_BAM_scripts_and_inputs
-
 ├── Final_bams
-
 ├── Germline-ShortV
-
 ├── Reference
-
 ├── samples.config
-
+```
 
 `Germline-ShortV` will be your working directory.
 
