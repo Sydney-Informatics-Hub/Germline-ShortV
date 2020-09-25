@@ -59,6 +59,9 @@ while read -r interval duration memory; do
 	if [[ $duration =~ NA || $memory =~ NA ]]
 	then
 		redo+=("$interval")
+	elif grep -q Exception ${logs}/${interval}.oe
+	then
+		redo+=("$interval")
 	fi
 done < "$perlfile"
 
