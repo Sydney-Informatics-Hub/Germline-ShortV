@@ -52,7 +52,7 @@ NCPUS=1
 			
 # SCRIPT
 SCRIPT=./gatk4_hc.sh
-INPUTS=./Inputs/gatk4_hc.inputs
+INPUTS=./Inputs/gatk4_hc_missing.inputs
 
 CPN=48 #CPUs per node 
 M=$(( CPN / NCPUS )) #tasks per node
