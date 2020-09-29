@@ -8,7 +8,7 @@
 # below, then qsub gatk4_hc_gathervcfs_run_parallel.pbs
 # Job resource requirements:
 # 1CPU, 20Gb memory per normal sample in ../<cohort>.config
-# Using normalbw queue, request 48 CPU, 256Gb mem per 24-34 samples
+# Using normalbw queue, request 28 CPU, 256Gb mem per 24-34 samples
 # walltime=00:41:48 benchmarked for 34 human samples
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
@@ -36,18 +36,18 @@
 #PBS -e ./Logs/gatk4_gathervcfs.e
 #PBS -m ae
 
-module load openmpi/4.0.2
-module load nci-parallel/1.0.0
-
-set -e
-
+# NCPUs = CPUs per task
+NCPUS=2
+		
 #########################################################
 # Do not edit below this line (unless running on a node that
 # does not have 48 CPU, in which case edit the value of 'CPN'
 #########################################################
 
-# NCPUs = CPUs per task
-NCPUS=2
+module load openmpi/4.0.2
+module load nci-parallel/1.0.0
+
+set -e
 			
 # SCRIPT
 SCRIPT=./gatk4_hc_gathervcfs.sh
