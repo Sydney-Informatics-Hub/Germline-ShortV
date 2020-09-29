@@ -89,4 +89,9 @@ for sample in "${samples[@]}"; do
 	fi
 done
 
-echo "$(date): There are $total_missing vcf files in $cohort. Please run gatk4_hc_missing_run_parallel.pbs"
+if [[ $total_missing==0 ]]
+then
+	echo "$(date): Found all vcf and idx files for samples in $cohort."
+else
+	echo "$(date): There are $total_missing vcf files in $cohort. Please run gatk4_hc_missing_run_parallel.pbs"
+fi
