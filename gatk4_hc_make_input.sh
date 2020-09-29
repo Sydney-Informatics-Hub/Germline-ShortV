@@ -52,6 +52,9 @@ while read -r sampleid labid seq_center library; do
 	fi
 done < "${config}"
 
+echo "$(date): Writing inputs for gatk4_hc_run_parallel.pbs for ${#samples[@]} samples and 3200 tasks per sample to ${INPUTS}/gatk4_hc.inputs"
+echo "$(date): Normal samples found include ${samples[@]}"
+
 rm -rf ${INPUTS}/gatk4_hc.inputs
 
 # Write gatk4_hc.inputs file, using nt=1 
@@ -65,3 +68,7 @@ while IFS= read -r intfile; do
 	done
 done < "${scatterlist}"
 
+ncpus=$(( ${#samples[@]}*2*48 ))
+mem=$(( ${#samples[@]}*2*190 ))
+echo "$(date): Number of samples: ${#samples[@]}"
+echo "$(date): Recommended compute to request in gatk4_hc_run_parallel.pbs: walltime=02:00:00,ncpus=${ncpus},mem=${mem}GB,wd"
