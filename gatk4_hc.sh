@@ -31,8 +31,7 @@ sample=`echo $1 | cut -d ',' -f 2`
 bam=`echo $1 | cut -d ',' -f 3`
 interval=`echo $1 | cut -d ',' -f 4`
 out=`echo $1 | cut -d ',' -f 5`
-nt=`echo $1 | cut -d ',' -f 6`
-logdir=`echo $1 | cut -d ',' -f 7`
+logdir=`echo $1 | cut -d ',' -f 6`
 
 mkdir -p ${out}
 mkdir -p ${logdir}
@@ -42,7 +41,7 @@ index=${filename%-scattered.interval_list}
 
 gvcf=${out}/${sample}.${index}.vcf
 
-echo "$(date) : Start GATK 4 HaplotypeCaller. Reference: ${ref}; Sample: ${sample}; Bam: ${bam}; Interval: ${filename}; Threads: ${nt}; Logs: ${logdir}" >> ${logdir}/${index}.oe
+echo "$(date) : Start GATK 4 HaplotypeCaller. Reference: ${ref}; Sample: ${sample}; Bam: ${bam}; Interval: ${filename}; Threads: ${NCPUS}; Logs: ${logdir}" >> ${logdir}/${index}.oe
 
 gatk --java-options "-Xmx8g -Xms8g" \
 	HaplotypeCaller \
@@ -53,7 +52,7 @@ gatk --java-options "-Xmx8g -Xms8g" \
 	-G StandardAnnotation \
 	-G AS_StandardAnnotation \
 	-G StandardHCAnnotation \
-	--native-pair-hmm-threads ${nt} \
+	--native-pair-hmm-threads ${NCPUS} \
 	-ERC GVCF 2>>${logdir}/${index}.oe 
 
 echo "$(date) : Finished GATK 4 Haplotype Caller for: ${gvcf}" >> ${logdir}/${index}.oe
