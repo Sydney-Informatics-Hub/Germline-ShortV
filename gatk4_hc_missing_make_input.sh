@@ -45,7 +45,6 @@ outdir=./Interval_VCFs
 logs=./Logs/gatk4_hc
 INPUTS=./Inputs
 inputfile=${INPUTS}/gatk4_hc_missing.inputs
-nt=1
 
 rm -rf ${inputfile}
 rm -rf ${inputlogs}
@@ -73,7 +72,7 @@ for sample in "${samples[@]}"; do
 		if ! [[ -s "${vcf}" &&  -s "${idx}" ]]
 		then
 			intfile=$(grep ${interval} ${scatterlist})
-			echo "${ref},${sample},${bam},${scatterdir}/${intfile},${out},${nt},${logdir}" >> ${inputfile}
+			echo "${ref},${sample},${bam},${scatterdir}/${intfile},${out},${logdir}" >> ${inputfile}
 		else
 			((++i))
 		fi
