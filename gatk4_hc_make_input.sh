@@ -39,7 +39,6 @@ bamdir=../Final_bams
 outdir=./Interval_VCFs
 logs=./Logs/gatk4_hc
 INPUTS=./Inputs
-nt=1
 
 mkdir -p ${INPUTS}
 mkdir -p ${logs}
@@ -64,7 +63,7 @@ while IFS= read -r intfile; do
 		bam=${bamdir}/${sample}.final.bam
 		logdir=${logs}/${sample}
 		interval="${scatterdir}/${intfile}"
-		echo "${ref},${sample},${bam},${interval},${out},${nt},${logdir}" >> ${INPUTS}/gatk4_hc.inputs
+		echo "${ref},${sample},${bam},${interval},${out},${logdir}" >> ${INPUTS}/gatk4_hc.inputs
 	done
 done < "${scatterlist}"
 
