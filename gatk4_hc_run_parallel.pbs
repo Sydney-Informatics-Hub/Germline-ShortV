@@ -10,8 +10,8 @@
 # below, then qsub gatk4_hc_run_parallel.pbs
 # Job resource requirements:
 # walltime=02:00:00 (job expected to complete in ~1 hour)
-# ncpus=96*N (N=number of samples in ../<cohort>.config)
-# mem=192*N GB (N=number of samples in ../<cohort>.config)
+# ncpus=48*2*N (N=number of samples in ../<cohort>.config)
+# mem=192*2*N GB (N=number of samples in ../<cohort>.config)
 # Per task requirements:
 # 1 task requires 1 CPU, 4GB mem
 # Author: Tracy Chew
