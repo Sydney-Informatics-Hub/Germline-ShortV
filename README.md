@@ -11,10 +11,11 @@ The following will perform germline short variant calling for all samples presen
   * `sh gatk4_hc_make_input.sh <cohort>`
   * `qsub gatk4_hc_run_parallel.pbs`
 2. Check all interval .vcf and .vcf.idx files are present, check per sample task duration, check for errors in log files and archive logs by:
-  * `sh gatk4_hc_missing_make_input.sh <cohort>`. Re-run this script, check cause of errors until there are 0 missing vcf files.
-  * `qsub gatk4_hc_missing_run_parallel.pbs`. Run this if there were missing vcf files.
+  * `sh gatk4_hc_missing_make_input.sh <cohort>`. 
+  * `qsub gatk4_hc_missing_run_parallel.pbs`. Run this if there were missing .vcf or .vcf.idx files.
+  The above two scripts should be re-run until all expected .vcf and .idx files are present for each sample. Once all files are present, run the following two scripts to check log files for errors. If there are none, log files will be archived.
   * `sh gatk4_hc_checklogs_make_input.sh <cohort>`
-  * `sh gatk4_hc_checklogs_run_parallel.sh`
+  * `sh gatk4_hc_checklogs_run_parallel.sh <cohort>` after adjusting project codes in the script. 
 3. Merge haplotype caller per interval vcfs by:
   * `sh gatk4_hc_gathervcfs_make_input.sh <cohort>`
   * `qsub gatk4_hc_gathervcfs_run_parallel.pbs`
