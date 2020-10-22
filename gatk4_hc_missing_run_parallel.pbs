@@ -54,7 +54,7 @@ NCPUS=1
 SCRIPT=./gatk4_hc.sh
 INPUTS=./Inputs/gatk4_hc_missing.inputs
 
-CPN=48 #CPUs per node 
+if [[ $PBS_QUEUE =~ bw-exec ]]; then CPN=28; else CPN=48; fi
 M=$(( CPN / NCPUS )) #tasks per node
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file

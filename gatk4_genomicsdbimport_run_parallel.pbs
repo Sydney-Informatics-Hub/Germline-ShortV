@@ -63,7 +63,7 @@ INPUTS=./Inputs/gatk4_genomicsdbimport.inputs
 
 echo "$(date) : GATK 4 Consolidate VCFs across samples with GenomicsDBImport."
 
-CPN=48 #CPUs per node 
+if [[ $PBS_QUEUE =~ bw-exec ]]; then CPN=28; else CPN=48; fi
 M=$(( CPN / NCPUS )) #tasks per node
 
 sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file

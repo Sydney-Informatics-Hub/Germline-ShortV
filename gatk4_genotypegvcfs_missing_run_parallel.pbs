@@ -71,7 +71,7 @@ INPUTS=./Inputs/gatk4_genotypegvcfs.inputs
 # SCRIPT
 SCRIPT=./gatk4_genotypegvcfs.sh
 
-CPN=48 #CPUs per node 
+if [[ $PBS_QUEUE =~ bw-exec ]]; then CPN=28; else CPN=48; fi
 M=$(( CPN / NCPUS )) #tasks per node
 
 echo "$(date) : GATK 4 GenotypeGVCFs using interval databases created with GenomicsDBImport."
