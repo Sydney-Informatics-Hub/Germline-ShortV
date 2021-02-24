@@ -61,6 +61,14 @@ By default, some genomic sites that significantly impede on compute performance 
 * chrN_XXXXX_random (unlocalized)
 * chrEBV
 
+### Cancer studies
+
+A `<cohort>.config` file containing both tumour and normal samples can be used to call germline variants on the normal samples only. The make input files will ignore writing inputs for tumour samples. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
+
+* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging.
+* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient.
+* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
+
 # Set up
 
 The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline and human datasets using the GRCh38/hg38 + ALT contigs reference. The scripts use relative paths, so correct set-up is important. 
@@ -90,12 +98,6 @@ Your high level directory structure should resemble the following:
 
 3. Follow the instructions in Quickstart or in the User Guide section (coming soon!)
 
-__For cancer studies__: A `<cohort>.config` file containing both tumour and normal samples can be used to call germline variants on the normal samples only. The make input files will ignore writing inputs for tumour samples. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
-
-* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging.
-* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient.
-* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
-
 ## Non-human organisms
 
 This pipeline can be used on reference datasets other than GRCh38/hg38 + ALT contigs, including other model or non-model organisms. You will need to complete an additional set-up step to create a list of intervals for scatter-gathering in this pipeline.
@@ -109,8 +111,6 @@ To create a list of intervals for scattering tasks:
 * Run `gatk SplitIntervals -R <reference.fa> --scatter-count 3200 -XL <exclude_intervals.bed> -O ShortV_intervals`. `-XL <exclude_intervals.bed>` allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc). The pipeline is set up to run on 3200 scattered intervals. 
 
 # User guide
-
-## Human (GRCh38/hg38 + ALT contigs)
 
 Once you have followed the __Set up__ instructions, you can follow the instructions below. These instructions will create per sample GVCFs and perform joint-genotyping for multiple samples listed in `../<cohort>.config`.
 
