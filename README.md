@@ -114,12 +114,6 @@ To create a list of intervals for scattering tasks:
 
 Once you have followed the __Set up__ instructions, you can follow the instructions below. These instructions will create per sample GVCFs and perform joint-genotyping for multiple samples listed in `../<cohort>.config`.
 
-__For cancer studies__: A `<cohort>.config` file containing both tumour and normal samples can be used to call germline variants on the normal samples only. The make input files will ignore writing inputs for tumour samples. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
-
-* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging. 
-* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient. 
-* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
-
 ## Step 1. HaplotypeCaller
 
 This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task in the job runs HaplotypeCaller for a single sample for a single genomic interval. 
