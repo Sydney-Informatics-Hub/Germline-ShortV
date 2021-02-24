@@ -41,8 +41,8 @@
 #PBS -q normal
 #PBS -W umask=022
 #PBS -l storage=scratch/er01+scratch/hm82
-#PBS -o ./Logs/gatk4_hc_0.o
-#PBS -e ./Logs/gatk4_hc_0.e
+#PBS -o ../Logs/gatk4_hc_0.o
+#PBS -e ../Logs/gatk4_hc_0.e
 
 #INPUTS=./Inputs/gatk4_hc.inputs
 INPUTS=./Inputs/gatk4_hc_0.inputs
