@@ -87,6 +87,12 @@ Your high level directory structure should resemble the following:
 
 Once you have followed the __Set up__ instructions, you can follow the instructions below. These instructions will create per sample GVCFs and perform joint-genotyping for multiple samples listed in `../<cohort>.config`.
 
+__For cancer studies__: `<cohort>.config` containing tumour and normal samples can be used to call germline variants on normal samples only. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
+
+* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging. 
+* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient. 
+* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
+
 
 # References
 
