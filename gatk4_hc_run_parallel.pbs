@@ -16,10 +16,15 @@
 # 1 task requires 1 CPU, 4GB mem
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
-# Date last modified: 17/08/2020
+# Date last modified: 24/02/2021
 #
 # If you use this script towards a publication, please acknowledge the
 # Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested citation:
+# Sydney Informatics Hub, Core Research Facilities, University of Sydney,
+# 2021, The Sydney Informatics Hub Bioinformatics Repository, <date accessed>,
+# https://github.com/Sydney-Informatics-Hub/Bioinformatics
 #
 # Suggested acknowledgement:
 # The authors acknowledge the scientific and technical assistance
@@ -30,30 +35,32 @@
 #
 #########################################################
 
-#PBS -P <project>
+#PBS -P er01
 #PBS -N hc
-#PBS -l walltime=02:00:00,ncpus=1152,mem=4608GB,wd
+#PBS -l walltime=02:00:00,ncpus=3264,mem=12920GB,wd
 #PBS -q normal
 #PBS -W umask=022
-#PBS -l storage=scratch/<project>
-#PBS -o ./Logs/gatk4_hc.o
-#PBS -e ./Logs/gatk4_hc.e
+#PBS -l storage=scratch/er01+scratch/hm82
+#PBS -o ./Logs/gatk4_hc_0.o
+#PBS -e ./Logs/gatk4_hc_0.e
+
+#INPUTS=./Inputs/gatk4_hc.inputs
+INPUTS=./Inputs/gatk4_hc_0.inputs
+
+#########################################################
+# Do not edit below this line 
+#########################################################
 
 module load openmpi/4.0.2
 module load nci-parallel/1.0.0
 
 set -e
 
-#########################################################
-# Do not edit below this line 
-#########################################################
-
 # NCPUs = CPUs per task
 NCPUS=1
 			
 # SCRIPT
 SCRIPT=./gatk4_hc.sh
-INPUTS=./Inputs/gatk4_hc.inputs
 
 if [[ $PBS_QUEUE =~ bw-exec ]]; then CPN=28; else CPN=48; fi
 M=$(( CPN / NCPUS )) #tasks per node

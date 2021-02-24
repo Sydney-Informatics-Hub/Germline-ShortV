@@ -10,10 +10,15 @@
 # Resource requirements:
 # Author: Tracy Chew
 # tracy.chew@sydney.edu.au
-# Date last modified: 17/08/2020
+# Date last modified: 24/02/2021
 #
 # If you use this script towards a publication, please acknowledge the
 # Sydney Informatics Hub (or co-authorship, where appropriate).
+#
+# Suggested citation:
+# Sydney Informatics Hub, Core Research Facilities, University of Sydney, 
+# 2021, The Sydney Informatics Hub Bioinformatics Repository, <date accessed>, 
+# https://github.com/Sydney-Informatics-Hub/Bioinformatics
 #
 # Suggested acknowledgement:
 # The authors acknowledge the scientific and technical assistance
@@ -30,6 +35,10 @@ then
 	exit
 fi
 
+# Can include run_num to manage input and log files for benchmarking
+# Otherwise, hash out
+run_num=_0
+
 cohort=$1
 config=../$cohort.config
 ref=../Reference/hs38DH.fasta
@@ -37,8 +46,9 @@ scatterdir=../Reference/ShortV_intervals
 scatterlist=$scatterdir/3200_ordered_exclusions.list
 bamdir=../Final_bams
 outdir=./Interval_VCFs
-logs=./Logs/gatk4_hc
+logs=../Logs/gatk4_hc$run_num
 INPUTS=./Inputs
+inputfile=${INPUTS}/gatk4_hc$run_num.inputs
 
 mkdir -p ${INPUTS}
 mkdir -p ${logs}
@@ -46,7 +56,7 @@ mkdir -p ${logs}
 # Collect sample IDs from samples.config
 # Only collect IDs for germline variant calling (labids ending in -B or -N)
 while read -r sampleid labid seq_center library; do
-	if [[ ! ${sampleid} =~ ^#.*$ && ${labid} =~ -B$ || ${labid} =~ -N$ ]]; then
+	if [[ ! ${sampleid} =~ ^#.*$ && ! ${labid} =~ -T.*$ && ! ${labid} =~ -P.*$ && ! ${labid} =~ -M.*$ ]]; then
 		samples+=("${labid}")
 	fi
 done < "${config}"
@@ -54,7 +64,7 @@ done < "${config}"
 echo "$(date): Writing inputs for gatk4_hc_run_parallel.pbs for ${#samples[@]} samples and 3200 tasks per sample to ${INPUTS}/gatk4_hc.inputs"
 echo "$(date): Normal samples found include ${samples[@]}"
 
-rm -rf ${INPUTS}/gatk4_hc.inputs
+rm -rf ${inputfile}
 
 # Write gatk4_hc.inputs file, using nt=1 
 while IFS= read -r intfile; do
@@ -63,11 +73,14 @@ while IFS= read -r intfile; do
 		bam=${bamdir}/${sample}.final.bam
 		logdir=${logs}/${sample}
 		interval="${scatterdir}/${intfile}"
-		echo "${ref},${sample},${bam},${interval},${out},${logdir}" >> ${INPUTS}/gatk4_hc.inputs
+		echo "${ref},${sample},${bam},${interval},${out},${logdir}" >> ${inputfile}
 	done
 done < "${scatterlist}"
 
 ncpus=$(( ${#samples[@]}*2*48 ))
 mem=$(( ${#samples[@]}*2*190 ))
+num_tasks=`wc -l $inputfile | cut -d' ' -f 1`
+
 echo "$(date): Number of samples: ${#samples[@]}"
+echo "$(date): Number of tasks in $inputfile: $num_tasks"
 echo "$(date): Recommended compute to request in gatk4_hc_run_parallel.pbs: walltime=02:00:00,ncpus=${ncpus},mem=${mem}GB,wd"
