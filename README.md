@@ -124,7 +124,7 @@ __For cancer studies__: A `<cohort>.config` file containing both tumour and norm
 
 This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task in the job runs HaplotypeCaller for a single sample for a single genomic interval. 
 
-Create inputs for samples in ../<cohort>.config by:
+Create inputs for samples in `../<cohort>.config` by:
 
 * `sh gatk4_hc_make_input.sh <cohort>`
 
@@ -133,7 +133,7 @@ This creates Germline-ShortV/Inputs/gatk4_hc.inputs. Each line contains inputs f
 Check `gatk4_hc.sh` and add any parameters relevant to your study. E.g.:
 
 * For PCR-free libraries it is recommended to include `-pcr_indel_model NONE`
-* The next version of this pipeline will automatically set this option for you through ../<cohort>.config file
+* The next version of this pipeline will automatically set this option for you through `../<cohort>.config` file
 
 Set up and run the gatk4 HaplotypeCaller job by:
 
