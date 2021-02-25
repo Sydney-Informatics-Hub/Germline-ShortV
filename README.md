@@ -129,6 +129,20 @@ This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task i
   * Adjusting PBS directives in `gatk4_hc_run_parallel.pbs`
   * Submitting your job: `qsub gatk4_hc_run_parallel.pbs`
 
+# Benchmarking metrics
+
+The benchmarking results provided were obtained from a human dataset with an average coverage of 35X.
+
+## Step 1. Benchmarking: HaplotypeCaller
+
+| #JobName        | CPUs_used | Mem_used | CPUtime     | Walltime_used | JobFS_used | Efficiency | Service_units(CPU_hours) | Queue  | Samples processed | SUs per sample | Exit_status    |
+|-----------------|-----------|----------|-------------|---------------|------------|------------|--------------------------|--------|-------------------|----------------|----------------|
+| gatk4_hc_1920   | 1920      | 6.52TB   | 1693:46:28  | 0:54:08       | 20.55MB    | 0.98       | 3464.53                  | normal | 40                | 86.61325       | 0              |
+| gatk4_hc_2880.o | 2880      | 9.56TB   | 2490:01:45  | 0:53:19       | 26.97MB    | 0.97       | 5118.4                   | normal | 60                | 85.30666667    | 0              |
+| gatk4_hc_3840.o | 3840      | 12.85TB  | 3757:02:48  | 1:00:11       | 33.24MB    | 0.98       | 7703.47                  | normal | 80                | 96.293375      | 0              |
+| gatk4_hc_5760.o | 5760      | 19.66TB  | 7581:22:59  | 2:01:12       | 46.05MB    | 0.65       | 23270.4                  | normal | 120               | 193.92         | 271 (walltime) |
+| gatk4_hc_7680.o | 7680      | 26.92TB  | 11522:42:48 | 2:01:07       | 62.59MB    | 0.74       | 31005.87                 | normal | 160               | 193.7866875    | 271 (walltime) |
+
 # References
 
 GATK 4: Van der Auwera et al. 2013 https://currentprotocols.onlinelibrary.wiley.com/doi/abs/10.1002/0471250953.bi1110s43
