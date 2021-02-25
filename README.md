@@ -135,13 +135,13 @@ The benchmarking results provided were obtained from a human dataset with an ave
 
 ## Step 1. Benchmarking: HaplotypeCaller
 
-| #JobName        | CPUs_used | Mem_used | CPUtime     | Walltime_used | JobFS_used | Efficiency | Service_units(CPU_hours) | Queue  | Samples processed | SUs per sample | Exit_status    |
-|-----------------|-----------|----------|-------------|---------------|------------|------------|--------------------------|--------|-------------------|----------------|----------------|
-| gatk4_hc_1920   | 1920      | 6.52TB   | 1693:46:28  | 0:54:08       | 20.55MB    | 0.98       | 3464.53                  | normal | 40                | 86.61325       | 0              |
-| gatk4_hc_2880.o | 2880      | 9.56TB   | 2490:01:45  | 0:53:19       | 26.97MB    | 0.97       | 5118.4                   | normal | 60                | 85.30666667    | 0              |
-| gatk4_hc_3840.o | 3840      | 12.85TB  | 3757:02:48  | 1:00:11       | 33.24MB    | 0.98       | 7703.47                  | normal | 80                | 96.293375      | 0              |
-| gatk4_hc_5760.o | 5760      | 19.66TB  | 7581:22:59  | 2:01:12       | 46.05MB    | 0.65       | 23270.4                  | normal | 120               | 193.92         | 271 (walltime) |
-| gatk4_hc_7680.o | 7680      | 26.92TB  | 11522:42:48 | 2:01:07       | 62.59MB    | 0.74       | 31005.87                 | normal | 160               | 193.7866875    | 271 (walltime) |
+| Samples processed | CPUs_used | Mem_used | CPUtime     | Walltime_used | JobFS_used | Efficiency | Service_units(CPU_hours) | Queue  | SUs per sample | Exit_status    |
+|-------------------|-----------|----------|-------------|---------------|------------|------------|--------------------------|--------|----------------|----------------|
+| 40                | 1920      | 6.52TB   | 1693:46:28  | 0:54:08       | 20.55MB    | 0.98       | 3465                     | normal | 87             | 0              |
+| 60                | 2880      | 9.56TB   | 2490:01:45  | 0:53:19       | 26.97MB    | 0.97       | 5118                     | normal | 85             | 0              |
+| 80                | 3840      | 12.85TB  | 3757:02:48  | 1:00:11       | 33.24MB    | 0.98       | 7703                     | normal | 96             | 0              |
+| 120               | 5760      | 19.66TB  | 7581:22:59  | 2:01:12       | 46.05MB    | 0.65       | 23270                    | normal | 194            | 271 (walltime) |
+| 160               | 7680      | 26.92TB  | 11522:42:48 | 2:01:07       | 62.59MB    | 0.74       | 31006                    | normal | 194            | 271 (walltime) |
 
 # References
 
