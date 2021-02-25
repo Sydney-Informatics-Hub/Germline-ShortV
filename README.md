@@ -121,13 +121,13 @@ This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task i
 1. Create inputs for samples in `../<cohort>.config` by `sh gatk4_hc_make_input.sh <cohort>`. This creates Germline-ShortV/Inputs/gatk4_hc.inputs. Each line contains inputs for a single task for `gatk4_hc.sh`
 2. Check `gatk4_hc.sh` and add any parameters relevant to your study. E.g.:
 
-* For PCR-free libraries it is recommended to include `-pcr_indel_model NONE`
-* The next version of this pipeline will automatically set this option for you through `../<cohort>.config` file
+  * For PCR-free libraries it is recommended to include `-pcr_indel_model NONE`
+  * The next version of this pipeline will automatically set this option for you through `../<cohort>.config` file
 
 3. Set up and run the gatk4 HaplotypeCaller job by:
 
-* Adjusting PBS directives in `gatk4_hc_run_parallel.pbs`
-* Submitting your job: `qsub gatk4_hc_run_parallel.pbs`
+  * Adjusting PBS directives in `gatk4_hc_run_parallel.pbs`
+  * Submitting your job: `qsub gatk4_hc_run_parallel.pbs`
 
 # References
 
