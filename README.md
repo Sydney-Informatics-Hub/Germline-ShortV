@@ -135,6 +135,8 @@ The benchmarking results provided were obtained from a human dataset with an ave
 
 ## Step 1. Benchmarking: HaplotypeCaller
 
+The benchmarking metrics below were obtained using human datasets with an average coverage of 35X. 
+
 Scalability to compute resources
 
 | Samples processed | CPUs_used | CPUs_per_sample | Mem_used | CPUtime    | Walltime_used | JobFS_used | Efficiency | Service_units(CPU_hours) | Queue  | Average SUs per sample | Exit_status |
