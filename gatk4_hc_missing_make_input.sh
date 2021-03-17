@@ -42,55 +42,57 @@ scatterdir=../Reference/ShortV_intervals
 scatterlist=$scatterdir/3200_ordered_exclusions.list
 bamdir=../Final_bams
 outdir=./Interval_VCFs
-logs=./Logs/gatk4_hc
+logs=../Logs/gatk4_hc
 INPUTS=./Inputs
 inputfile=${INPUTS}/gatk4_hc_missing.inputs
 
 rm -rf ${inputfile}
 rm -rf ${inputlogs}
 
+# Number of intervals
+num_int=`wc -l ${scatterlist} | cut -d' ' -f 1`
+
 # Collect sample IDs from samples.config
 # Only collect IDs for germline variant calling (labids ending in -B)
 while read -r sampleid labid seq_center library; do
-	if [[ ! ${sampleid} =~ ^#.*$ && ${labid} =~ -B$ || ${labid} =~ -N$ ]]; then
-		samples+=("${labid}")
-	fi
+        if [[ ! -z ${sampleid} && ! ${sampleid} =~ ^#.*$ && ! ${labid} =~ -T.*$ && ! ${labid} =~ -P.*$ && ! ${labid} =~ -M.*$ ]]; then
+                samples+=("${labid}")
+        fi
 done < "${config}"
 
-# For each sample, check intervals with no .vcf and .vcf.idx files
+echo "$(date): Checking gatk4 haplotype caller job for samples: ${#samples[@]}"
+echo "$(date): Normal samples found include ${samples[@]}"
 
+# For each sample, check intervals with no .vcf and .vcf.idx files
 for sample in "${samples[@]}"; do
-	# Check if .vcf and .vcf.idx files exist and are not empty
-	i=0
-	for interval in $(seq -f "%04g" 0 3199); do
-		logfile=${logs}/${sample}/${interval}.oe
-		vcf=${outdir}/${sample}/${sample}.${interval}.vcf
-		idx=${outdir}/${sample}/${sample}.${interval}.vcf.idx
-		bam=${bamdir}/${sample}.final.bam
-		out=${outdir}/${sample}
-		logdir=${logs}/${sample}
-		if ! [[ -s "${vcf}" &&  -s "${idx}" ]]
-		then
-			intfile=$(grep ${interval} ${scatterlist})
-			echo "${ref},${sample},${bam},${scatterdir}/${intfile},${out},${logdir}" >> ${inputfile}
-		else
-			((++i))
-		fi
-	done
-	
-	if [[ $i == 3200 ]]
-	then
-		echo "$(date): ${sample} has all vcf and vcf.idx present. Ready for merging into GVCF."
-	else
-		num_missing=$((3200 - $i))
-		echo "$(date): ${sample} has ${num_missing} missing vcf or vcf.idx files."
-		total_missing=$(($total_missing+$num_missing))
-	fi
+        # Check if .vcf and .vcf.idx files exist and are not empty
+        i=0
+        for interval in $(seq -f "%04g" 0 $((${num_int}-1))); do
+                logfile=${logs}/${sample}/${interval}.oe
+                vcf=${outdir}/${sample}/${sample}.${interval}.vcf
+                idx=${outdir}/${sample}/${sample}.${interval}.vcf.idx
+                bam=${bamdir}/${sample}.final.bam
+                out=${outdir}/${sample}
+                logdir=${logs}/${sample}
+                if ! [[ -s "${vcf}" &&  -s "${idx}" ]]; then
+                        intfile=$(grep ${interval} ${scatterlist})
+                        echo "${ref},${sample},${bam},${scatterdir}/${intfile},${out},${logdir}" >> ${inputfile}
+                else
+                        ((++i))
+                fi
+        done
+
+        if [[ $i == ${num_int} ]]; then
+                echo "$(date): ${sample} has all vcf and vcf.idx present. Ready for merging into GVCF."
+        else
+                num_missing=$((${num_int} - $i))
+                echo "$(date): ${sample} has ${num_missing} missing vcf or vcf.idx files."
+                total_missing=$((${total_missing}+${num_missing}))
+fi
 done
 
-if [[ $total_missing==0 ]]
-then
-	echo "$(date): Found all vcf and idx files for samples in $cohort."
+if [[ ${total_missing} ]]; then
+        echo "$(date): There are $total_missing vcf files in $config. Please run gatk4_hc_missing_run_parallel.pbs"
 else
-	echo "$(date): There are $total_missing vcf files in $cohort. Please run gatk4_hc_missing_run_parallel.pbs"
+        echo "$(date): Found all vcf and idx files for samples in $config."
 fi
