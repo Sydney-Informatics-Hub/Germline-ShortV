@@ -44,8 +44,8 @@
 #PBS -o ../Logs/gatk4_hc_0.o
 #PBS -e ../Logs/gatk4_hc_0.e
 
-#INPUTS=./Inputs/gatk4_hc.inputs
-INPUTS=./Inputs/gatk4_hc_0.inputs
+INPUTS=./Inputs/gatk4_hc.inputs
+#INPUTS=./Inputs/gatk4_hc_0.inputs
 
 #########################################################
 # Do not edit below this line 
@@ -53,6 +53,7 @@ INPUTS=./Inputs/gatk4_hc_0.inputs
 
 module load openmpi/4.0.2
 module load nci-parallel/1.0.0
+module load gatk/4.1.2.0
 
 set -e
 
