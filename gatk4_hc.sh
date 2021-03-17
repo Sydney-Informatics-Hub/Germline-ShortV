@@ -26,11 +26,6 @@
 #
 #########################################################
 
-# Run GATK HC using scatter-gather method
-
-module load gatk/4.1.2.0
-module load samtools/1.10
-
 ref=`echo $1 | cut -d ',' -f 1`
 sample=`echo $1 | cut -d ',' -f 2`
 bam=`echo $1 | cut -d ',' -f 3`
