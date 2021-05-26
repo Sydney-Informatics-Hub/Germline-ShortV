@@ -1,4 +1,7 @@
 # Germline-ShortV
+
+This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency.
+
 <img src="https://user-images.githubusercontent.com/49257820/87390949-2b253080-c5ed-11ea-83a2-b559c0c4df2e.png" width="50%" height="50%">
 
 # Quickstart
@@ -84,14 +87,21 @@ Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fast
 Your high level directory structure should resemble the following:
 
 ```bash
-├── Fastq
-├── Fastq_to_BAM_job_logs
-├── Fastq_to_BAM_program_logs
-├── Fastq_to_BAM_scripts_and_inputs
-├── Final_bams
-├── Germline-ShortV
-├── Reference
-├── samples.config
+.
+|-- Align_split
+|-- BQSR_apply
+|-- BQSR_tables
+|-- Check_split_fastq
+|-- Dedup_sort
+|-- FastQC
+|-- Fastq
+|-- Final_bams
+|-- HLA_fastq
+|-- Merge_align
+|-- Reference
+|-- Scripts
+|-- SplitDisc
+`-- Split_fastq
 ```
 
 `Germline-ShortV` will be your working directory.
