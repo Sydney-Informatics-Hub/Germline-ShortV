@@ -11,9 +11,11 @@ This quickstart is not for first timers. :)
 The following will perform germline short variant calling for all samples present in `../<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts. 
 
 0. Clone this repository and ensure you are correctly [set up](#set-up):
-  * `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
-  * `cd Germline-ShortV`
-2. Run HaplotypeCaller by:
+```
+git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git
+cd Germline-ShortV
+```
+1. Run HaplotypeCaller by:
   * `sh gatk4_hc_make_input.sh <cohort>`
   * `qsub gatk4_hc_run_parallel.pbs`
 3. Check all interval .vcf and .vcf.idx files are present, check per sample task duration, check for errors in log files and archive logs by:
