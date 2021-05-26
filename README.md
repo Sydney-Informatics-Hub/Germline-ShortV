@@ -8,13 +8,15 @@ This pipeline is an implementation of the [BROAD's Best Practice Workflow for Ge
 
 This quickstart is not for first timers. :)
 
-The following will perform germline short variant calling for all samples present in `../<cohort>.config`. Once you're set up (see the guide below), change into the `Germline-ShortV` directory after cloning this repository. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the parallel scripts. This will often be according to the number of samples in `../<cohort>.config`.
+The following will perform germline short variant calling for all samples present in `../<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts. 
 
-0. Follow [Set up](#set-up) instructions if you are running this for the first time
-1. Run HaplotypeCaller by:
+0. Clone this repository and ensure you are correctly [set up](#set-up):
+  * `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
+  * `cd Germline-ShortV`
+2. Run HaplotypeCaller by:
   * `sh gatk4_hc_make_input.sh <cohort>`
   * `qsub gatk4_hc_run_parallel.pbs`
-2. Check all interval .vcf and .vcf.idx files are present, check per sample task duration, check for errors in log files and archive logs by:
+3. Check all interval .vcf and .vcf.idx files are present, check per sample task duration, check for errors in log files and archive logs by:
   * `sh gatk4_hc_missing_make_input.sh <cohort>`. 
   * `qsub gatk4_hc_missing_run_parallel.pbs`. Run this if there were missing .vcf or .vcf.idx files.
   The above two scripts should be re-run until all expected .vcf and .idx files are present for each sample. Once all files are present, run the following two scripts to check log files for errors. If there are none, log files will be archived.
@@ -82,7 +84,7 @@ Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fast
 1. Change to the working directory where your final bams were created. The required inputs are:
 * ensure you have a `<cohort>.config` file, that is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) is perfect). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
 * ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file.
- * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants)
+ * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - script for this is coming soon**
 
 Your high level directory structure should resemble the following:
 
