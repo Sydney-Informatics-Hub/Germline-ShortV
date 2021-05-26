@@ -8,8 +8,9 @@ This pipeline is an implementation of the [BROAD's Best Practice Workflow for Ge
 
 This quickstart is not for first timers. :)
 
-The following will perform germline short variant calling for all samples present in `../<cohort>.config`. Once you're set up (see the guide below), change into the `Germline-ShortV` directory after cloning this repository. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the parallel scripts. This will often be according to the number of samples in `../<cohort>.config`.
+The following will perform germline short variant calling for all samples present in `..<cohort>.config`. Once you're set up (see the guide below), change into the `Germline-ShortV` directory after cloning this repository. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the parallel scripts. This will often be according to the number of samples in `../<cohort>.config`.
 
+0. Follow [Set up](#set up) instructions if you are running this for the first time
 1. Run HaplotypeCaller by:
   * `sh gatk4_hc_make_input.sh <cohort>`
   * `qsub gatk4_hc_run_parallel.pbs`
@@ -82,7 +83,6 @@ Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fast
 * ensure you have a `<cohort>.config` file, that is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) is perfect). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
 * ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file.
  * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants)
-2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
 
 Your high level directory structure should resemble the following:
 
@@ -103,6 +103,8 @@ Your high level directory structure should resemble the following:
 |-- SplitDisc
 `-- Split_fastq
 ```
+
+2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
 
 `Germline-ShortV` will be your working directory.
 
