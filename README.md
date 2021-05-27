@@ -15,18 +15,22 @@ The following will perform germline short variant calling for all samples presen
 git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git
 cd Germline-ShortV
 ```
-1. Run HaplotypeCaller by:
-  * `sh gatk4_hc_make_input.sh <cohort>`
-  * `qsub gatk4_hc_run_parallel.pbs`
-3. Check all interval .vcf and .vcf.idx files are present, check per sample task duration, check for errors in log files and archive logs by:
-  * `sh gatk4_hc_missing_make_input.sh <cohort>`. 
-  * `qsub gatk4_hc_missing_run_parallel.pbs`. Run this if there were missing .vcf or .vcf.idx files.
-  The above two scripts should be re-run until all expected .vcf and .idx files are present for each sample. Once all files are present, run the following two scripts to check log files for errors. If there are none, log files will be archived.
-  * `sh gatk4_hc_checklogs_make_input.sh <cohort>`
-  * `sh gatk4_hc_checklogs_run_parallel.sh <cohort>` after adjusting project codes in the script. 
-3. Merge haplotype caller per interval vcfs by:
-  * `sh gatk4_hc_gathervcfs_make_input.sh <cohort>`
-  * `qsub gatk4_hc_gathervcfs_run_parallel.pbs`
+1. Run HaplotypeCaller by creating inputs, adjusting compute resources and submitting the PBS script:
+```
+sh gatk4_hc_make_input.sh /path/to/cohort.config
+qsub gatk4_hc_run_parallel.pbs
+```
+2. Check HaplotypeCaller job. Check `Logs/GATK4_hc_error_capture`. Check all interval .vcf and .vcf.idx files are present and check for files in `GATK_hc_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`
+```
+sh gatk4_hc_check.sh /path/to/cohort.config
+# Only run the job below if there were tasks that failed
+qsub gatk4_hc_missing_run_parallel.pbs
+```
+3. Merge HaplotypeCaller per interval VCFs into single sample-level GVCFs creating inputs, adjusting compute resources and submitting the PBS script:
+```
+sh gatk4_hc_gathervcfs_make_input.sh /path/to/cohort.config
+qsub gatk4_hc_gathervcfs_run_parallel.pbs
+```
 4. Backup GVCFs
 5. Consolidate interval VCFs using GATK’s GenomicsDBImport by:
   * `sh gatk4_genomicsdbimport_make_input.sh <cohort>`
