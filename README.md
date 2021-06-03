@@ -20,7 +20,7 @@ cd Germline-ShortV
 sh gatk4_hc_make_input.sh /path/to/cohort.config
 qsub gatk4_hc_run_parallel.pbs
 ```
-2. Check HaplotypeCaller job. Check `Logs/GATK4_hc_error_capture`. Check all interval .vcf and .vcf.idx files are present and check for files in `GATK_hc_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`
+2. Check HaplotypeCaller job. The script checks that all sample interval `.vcf` and `.vcf.idx` files exist, and for any files in `Logs/GATK4_HC_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`. If there are failed tasks, investigate cause of errors using sample interval log files in `Logs/GATK4_HC`
 ```
 sh gatk4_hc_check.sh /path/to/cohort.config
 # Only run the job below if there were tasks that failed
