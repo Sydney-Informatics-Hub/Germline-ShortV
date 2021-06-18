@@ -125,6 +125,11 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
 
 ## Set up
 
+* For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs)
+* For sample BAMs aligned to other reference genomes, follow [Non-human organisms(#non-human-organisms)
+ 
+### Human (GRCh38/hg38 + ALT contigs)
+ 
 The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline and human datasets using the GRCh38/hg38 + ALT contigs reference. The scripts use relative paths, so correct set-up is important. 
 
 Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
@@ -170,25 +175,6 @@ To create a list of intervals for scattering tasks:
 * Change to your `Reference` directory, containing the reference genome you wish to use
 * Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.2.0`
 * Run `gatk SplitIntervals -R <reference.fa> --scatter-count 3200 -XL <exclude_intervals.bed> -O ShortV_intervals`. `-XL <exclude_intervals.bed>` allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc). The pipeline is set up to run on 3200 scattered intervals. 
-
-# User guide
-
-Once you have followed the __Set up__ instructions, you can follow the instructions below. These instructions will create per sample GVCFs and perform joint-genotyping for multiple samples listed in `../<cohort>.config`.
-
-## Step 1. HaplotypeCaller
-
-This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task in the job runs HaplotypeCaller for a single sample for a single genomic interval. 
-
-1. Create inputs for samples in `../<cohort>.config` by `sh gatk4_hc_make_input.sh <cohort>`. This creates Germline-ShortV/Inputs/gatk4_hc.inputs. Each line contains inputs for a single task for `gatk4_hc.sh`
-2. Check `gatk4_hc.sh` and add any parameters relevant to your study. E.g.:
-
-  * For PCR-free libraries it is recommended to include `-pcr_indel_model NONE`
-  * The next version of this pipeline will automatically set this option for you through `../<cohort>.config` file
-
-3. Set up and run the gatk4 HaplotypeCaller job by:
-
-  * Adjusting PBS directives in `gatk4_hc_run_parallel.pbs`
-  * Submitting your job: `qsub gatk4_hc_run_parallel.pbs`
 
 # Benchmarking metrics
 
