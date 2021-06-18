@@ -125,8 +125,8 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
 
 ## Set up
 
-* For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs)
-* For sample BAMs aligned to other reference genomes, follow [Non-human organisms(#non-human-organisms)
+* For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs))
+* For sample BAMs aligned to other reference genomes, follow [Non-human organisms](#non-human-organisms)
  
 ### Human (GRCh38/hg38 + ALT contigs)
  
