@@ -1,7 +1,5 @@
 # Germline-ShortV
 
-Jump to the [quickstart](#quickstart) if you are impatient and not a first timer :).
-
 ## Description
 
 This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency. Scatter-gather parallelism also enables checkpointing and 
@@ -62,7 +60,7 @@ A `<cohort>.config` file containing both tumour and normal samples can be used t
 
 <img src="https://user-images.githubusercontent.com/49257820/87390949-2b253080-c5ed-11ea-83a2-b559c0c4df2e.png" width="50%" height="50%">
 
-## Quickstart
+## User guide
 
 The following will perform germline short variant calling for all samples present in `<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts. 
 
@@ -130,13 +128,13 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
  
 ### Human (GRCh38/hg38 + ALT contigs)
  
-The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline and human datasets using the GRCh38/hg38 + ALT contigs reference. The scripts use relative paths, so correct set-up is important. 
+The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline and human datasets using the GRCh38/hg38 + ALT contigs reference. You can still use this pipeline if you have generated BAMs with an alternate pipeline following the instructions below. The scripts use relative paths, so correct set-up is important. 
 
 Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
 
 1. Change to the working directory where your final bams were created. The required inputs are:
 * ensure you have a `<cohort>.config` file, that is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) is perfect). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
-* ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file.
+* ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
  * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - script for this is coming soon**
 
 Your high level directory structure should resemble the following:
@@ -160,9 +158,7 @@ Your high level directory structure should resemble the following:
 
 2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
 
-`Germline-ShortV` will be your working directory.
-
-3. Follow the instructions in Quickstart or in the User Guide section (coming soon!)
+`Germline-ShortV` will be your working directory and you can now refer to the main [user guide](#user-guide).
 
 ## Non-human organisms
 
@@ -173,8 +169,13 @@ This pipeline can be used on reference datasets other than GRCh38/hg38 + ALT con
 To create a list of intervals for scattering tasks:
 
 * Change to your `Reference` directory, containing the reference genome you wish to use
-* Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.2.0`
-* Run `gatk SplitIntervals -R <reference.fa> --scatter-count 3200 -XL <exclude_intervals.bed> -O ShortV_intervals`. `-XL <exclude_intervals.bed>` allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc). The pipeline is set up to run on 3200 scattered intervals. 
+* Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
+* Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
+  * `-XL <exclude_intervals.bed>` is optional - it allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc).
+  * It is recommended to set <number_of_scatter_intervals> such that the reference genome size/<number_of_scatter_intervals> = 1000000 (as benchmarking metrics are based of 1Mb sized intervals)
+* Run `find ShortV_intervals/ -name "*interval_list" -printf "%f\n" > ShortV_intervals/interval.list` to create a single text file containing the `interval_list` files created with `gatk SplitIntervals`
+  * The order of the intervals in this file are used to order tasks in the job
+  * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
 
 # Benchmarking metrics
 
