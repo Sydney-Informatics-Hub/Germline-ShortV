@@ -1,6 +1,6 @@
 # Germline-ShortV
 
-Jump to the (quickstart)[## Quickstart] if you are impatient and not a first timer :).
+Jump to the (quickstart)[#quickstart] if you are impatient and not a first timer :).
 
 ## Description
 
