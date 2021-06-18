@@ -1,23 +1,67 @@
 # Germline-ShortV
 
+Jump to the (quickstart)[## Quickstart] if you are impatient and not a first timer :).
+
+## Description
+
 This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency.
+
+This workflow requires sample BAM files, which can be generated using the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. Optimisations for scalability and parallelization have been performed on the human reference genome GRCh38/hg38 + ALT contigs. Germline-ShortV can be applied to other model and non-model organisms (including non-diploid organisms), with some modifications as described below. 
+
+The primary steps to this pipeline are:
+
+* HaplotypeCaller
+* GenomicsDBImport
+* GenotypeGVCFs
+* Variant Quality Score Recalibration
+
+Most jobs follow a typical pattern which is:
+
+1. Creating inputs file using `<job>_make_input.sh <path/to/cohort.config>`
+2. Adjusting compute resources and submitting your job `by qsub <job>_run_parallel.pbs`. (Benchmarking metrics)[# Benchmarking metrics] are available on this page as a guide for compute resources required for your dataset. 
+
+## Human datasets: GRCh38/hg38 + ALT contigs reference
+
+
+There are six PBS jobs included in Germline-ShortV for samples which have been aligned to the human reference genome (GRCh38/hg38 + ALT contigs) using the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. The first job “HaplotypeCaller” calls raw SNPs and indels at 3,200 evenly-sized genomic intervals and multiple samples in parallel. “GatherVCFs” gathers per interval VCF files into per sample GVCF files, operating at multiple samples in parallel. We recommend backing up per sample GVCFs into the University of Sydney’s Research Data Store or similar. The sample GVCFs can be included in “Joint-calling” jobs in future projects as more samples are sequenced and are included in your cohort, saving compute resources. 
+
+“Joint calling” includes three PBS jobs and commences with multiple per sample GVCF files generated from the two jobs in “Variant calling”. The job “GenomicsDBImport” consolidates sample GVCFs into databases and “GenotypeGVCFs” joint-calls variants at the pre-defined 3,200 genomic intervals in parallel. The resulting multiple-sample VCFs obtained for 3,200 intervals are then gathered with GatherVCFs to obtain a single cohort VCF file. Variants in the cohort VCF file are filtered and refined, first by removing sites with excess heterozygosity (indicative of technical artefacts). GATK’s variant quality score recalibration (VQSR) methods including the tools VariantRecalibrator and ApplyVQSR are then applied to SNPs and indels separately. VQSR is a machine learning method that uses high quality variant resources (1000 Genomes, omni, hapmap) as a training set to profile properties of probable true variants from technical artefacts. Variant calling metrics are then obtained from the Analysis ready cohort VCFs containing SNPs and indels. These files should be backed up before proceeding with downstream analysis. 
+
+### Excluded sites
+
+By default, some genomic sites that significantly impede on compute performance are excluded from calling. Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.bed](https://gist.github.com/chapmanb/4c40f961b3ac0a4a22fd) file. The BED file contains:
+
+* telemeres
+* centromeres
+* chrUn (unplaced)
+* chrUn_XXXXX_decoy (decoy)
+* chrN_XXXXX_random (unlocalized)
+* chrEBV
+
+### Cancer studies
+
+A `<cohort>.config` file containing both tumour and normal samples can be used to call germline variants on the normal samples only. The make input files will ignore writing inputs for tumour samples. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
+
+* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging.
+* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient.
+* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
+
+## Workflow Diagram
 
 <img src="https://user-images.githubusercontent.com/49257820/87390949-2b253080-c5ed-11ea-83a2-b559c0c4df2e.png" width="50%" height="50%">
 
-# Quickstart
-
-This quickstart is not for first timers. :)
+## Quickstart
 
 The following will perform germline short variant calling for all samples present in `../<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts. 
 
-## Set up
+### Set up
 
 0. Clone this repository and ensure you are correctly [set up](#set-up):
 ```
 git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git
 cd Germline-ShortV
 ```
-## HaplotypeCaller
+### HaplotypeCaller
 
 1. Run HaplotypeCaller by creating inputs, adjusting compute resources and submitting the PBS script:
 ```
@@ -39,7 +83,7 @@ qsub gatk4_hc_gathervcfs_run_parallel.pbs
 
 Sample GVCFs can be used again if you wish perform multi-sample calling with a bigger cohort (e.g. when you sequence new samples), so we recommend backing these up.
 
-## GenomicsDBImport
+### GenomicsDBImport
 
 5. Consolidate interval VCFs using GATK’s GenomicsDBImport by:
   * `sh gatk4_genomicsdbimport_make_input.sh <cohort>`
@@ -47,6 +91,9 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
 6. Check interval GenomicsDBImport databases are present, check log files, check interval duration, check Runtime.totalMemory(), re-run tasks that failed
   * `sh gatk4_genomicsdbimport_missing_make_input.sh <cohort>`. Re-run this script until there are 0 intervals that need to be re-run. 
   * `qsub gatk4_genomicsdbimport_missing_run_parallel.pbs`. Run this if there are intervals that need to be run.
+
+### GenotypeGVCFs
+
 7. Perform joint calling using GATK's GenotypeGVCFs by:
   * `sh gatk4_genotypegvcfs_make_input.sh <cohort>`
   * `qsub gatk4_genotypegvcfs_run_parallel.pbs`
@@ -55,15 +102,15 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
   * `qsub gatk4_genotypegvcfs_missing_run_parallel.pbs`
 9. Gather joint-genotyped interval VCFs into a multisample GVCF. 
   * `qsub gatk4_gather_sort_vcfs.pbs`
+
+### Variant Quality Score Recalibration
+
 10. Run Variant Quality Score Recalibration (VQSR) by:
   *   * Change cohort=<cohort>
   * `qsub gatk4_vqsr.pbs`
   * Check `<cohort>.recalibrated.metrics.variant_calling_detail_metrics`
 11. Back up cohort, genotyped, recalibrated GVCFs and varaint calling metrics 
 
-# Description
-
-The Germline-ShortV workflow implements GATK 4’s Best Practices for Germline short variant discovery (SNPs + indels) in a scatter-gather fashion on NCI Gadi. This workflow requires sample BAM files, which can be obtained from the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. Optimisations for scalability and parallelization have been performed on the human reference genome GRCh38/hg38 + ALT contigs. Germline-ShortV can be applied to other model and non-model organisms (including non-diploid organisms), with some modifications as described below. 
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
