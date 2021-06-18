@@ -2,7 +2,7 @@
 
 ## Description
 
-This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency. Scatter-gather parallelism also enables checkpointing and 
+This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency. Scatter-gather parallelism also enables checkpointing and semi-automated re-running of failed tasks. 
 
 This workflow requires sample BAM files, which can be generated using the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. Optimisations for scalability and parallelization have been performed on the human reference genome GRCh38/hg38 + ALT contigs. Germline-ShortV can be applied to other model and non-model organisms (including non-diploid organisms), with some modifications as described below. 
 
@@ -17,6 +17,7 @@ Most jobs follow a typical pattern which is:
 
 1. Creating an inputs file using `<job>_make_input.sh <path/to/cohort.config>`
 2. Adjusting compute resources and submitting your job by `qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. 
+3. Performing a check on the job by checking for expected output, and/or, checking for error messages in log files. Inputs will be written for failed tasks for job re-submission
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
@@ -66,14 +67,21 @@ The following will perform germline short variant calling for all samples presen
 
 ### Set up
 
-0. Clone this repository and ensure you are correctly [set up](#set-up):
+1. At minimum, you will need a `<cohort>.config` and Your current working directory should contain:
+
+* `Final_bams` directory with your `<sample>.final.bam` and `<labsampleid>.final.bai` files within. 
+* `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)
+
+See [set up](#set-up) for more details or if you are __not__ using the GRCh38/hg38 + ALT contigs reference genome.
+
+Clone this repository:
 ```
 git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git
 cd Germline-ShortV
 ```
 ### HaplotypeCaller
 
-1. Run HaplotypeCaller by creating inputs, adjusting compute resources and submitting the PBS script:
+1. Run HaplotypeCaller by creating task inputs, adjusting compute resources and submitting the PBS script:
 ```
 sh gatk4_hc_make_input.sh /path/to/cohort.config
 qsub gatk4_hc_run_parallel.pbs
@@ -81,10 +89,11 @@ qsub gatk4_hc_run_parallel.pbs
 2. Check HaplotypeCaller job. The script checks that all sample interval `.vcf` and `.vcf.idx` files exist, and for any files in `Logs/GATK4_HC_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`. If there are failed tasks, investigate cause of errors using sample interval log files in `Logs/GATK4_HC`
 ```
 sh gatk4_hc_check.sh /path/to/cohort.config
+
 # Only run the job below if there were tasks that failed
 qsub gatk4_hc_missing_run_parallel.pbs
 ```
-3. Merge HaplotypeCaller per interval VCFs into single sample-level GVCFs creating inputs, adjusting compute resources and submitting the PBS script:
+3. Merge HaplotypeCaller per interval VCFs into single sample-level GVCFs creating by creating task inputs, adjusting compute resources and submitting the PBS script:
 ```
 sh gatk4_hc_gathervcfs_make_input.sh /path/to/cohort.config
 qsub gatk4_hc_gathervcfs_run_parallel.pbs
@@ -95,12 +104,21 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
 
 ### GenomicsDBImport
 
-5. Consolidate interval VCFs using GATK’s GenomicsDBImport by:
-  * `sh gatk4_genomicsdbimport_make_input.sh <cohort>`
-  * `qsub gatk4_genomicsdbimport_run_parallel.pbs`
-6. Check interval GenomicsDBImport databases are present, check log files, check interval duration, check Runtime.totalMemory(), re-run tasks that failed
-  * `sh gatk4_genomicsdbimport_missing_make_input.sh <cohort>`. Re-run this script until there are 0 intervals that need to be re-run. 
-  * `qsub gatk4_genomicsdbimport_missing_run_parallel.pbs`. Run this if there are intervals that need to be run.
+1. Consolidate interval VCFs using GATK’s GenomicsDBImport by creating task inputs, adjusting compute resources and submitting the PBS script:
+```
+sh gatk4_genomicsdbimport_make_input.sh /path/to/cohort.config
+qsub gatk4_genomicsdbimport_run_parallel.pbs`
+```
+2. Check interval GenomicsDBImport databases are present, check log files for errors for each interval present in the scatter list file. Report interval duration and Runtime.totalMemory() to `Logs/GATK4_GenomicsDBImport/GATK_duration_memory.txt`. 
+
+* Tip - if you have tasks that failed, it is likely that it needs more memory. Compute resources in the `gatk4_genomicsdbimport_missing.sh` task script (run in parallel by `gatk4_genomicsdbimport_missing_run_parallel.pbs`) by default allocates more memory per task, but you may want to make further adjustments.
+
+```
+sh gatk4_genomicsdbimport_check.sh /path/to/cohort.config
+
+# Only run the job below if there were tasks that failed
+qsub gatk4_genomicsdbimport_missing_run_parallel.pbs
+```
 
 ### GenotypeGVCFs
 
