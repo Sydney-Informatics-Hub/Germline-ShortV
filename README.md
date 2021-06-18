@@ -18,24 +18,24 @@ The primary steps to this pipeline are:
 Most jobs follow a typical pattern which is:
 
 1. Creating inputs file using `<job>_make_input.sh <path/to/cohort.config>`
-2. Adjusting compute resources and submitting your job `by qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. 
+2. Adjusting compute resources and submitting your job by `qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. 
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
 This pipeline has been optimised for BAMs mapped to the GRCh38/hg38 + ALT contigs reference genome. Scatter-gather parallelism has been designed to operate over 3,200 evenly sized genomic intervals (~1Mb in size) across your sample cohort. For each of the primary steps, this means:
 
 * HaplotypeCaller:
- * The number of scatter tasks = N samples x 3,200 genomic intervals
- * 3,200 VCFs are gathered per sample to create a `sample.g.vcf.gz`
+  * The number of scatter tasks = N samples x 3,200 genomic intervals
+  * 3,200 VCFs are gathered per sample to create a `sample.g.vcf.gz`
 * GenomicsDBImport:
- * The number of scatter tasks = 3,200 genomic intervals
- * Each output is used as input for GenotypeGVCFs
+  * The number of scatter tasks = 3,200 genomic intervals
+  * Each output is used as input for GenotypeGVCFs
 * GenotypeGVCFs:
- * The number of scatter tasks = 3,200 genomic intervals
- * 3,200 VCFs are gathered into a single `cohort.g.vcf.gz`
+  * The number of scatter tasks = 3,200 genomic intervals
+  * 3,200 VCFs are gathered into a single `cohort.g.vcf.gz`
 * Variant Quality Score Recalibration
- * Is relatively quick and scattering is not required.
- * Inputs are `cohort.g.vcf.gz` and the final output is written to `cohort.recalibrated.vcf.gz`
+  * Is relatively quick and scattering is not required.
+  * Inputs are `cohort.g.vcf.gz` and the final output is written to `cohort.recalibrated.vcf.gz`
 
 The 3,200 genomic intervals have been ordered from longest to shortest task duration for job maximum efficiency. Some [genomic intervals are excluded](#excluded-sites) - these typically include repetitive regions which can significantly impede on compute performance. 
 
