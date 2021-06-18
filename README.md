@@ -22,14 +22,26 @@ Most jobs follow a typical pattern which is:
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
+This pipeline has been optimised for BAMs mapped to the GRCh38/hg38 + ALT contigs reference genome. Scatter-gather parallelism has been designed to operate over 3,200 evenly sized genomic intervals (~1Mb in size) across your sample cohort. For each of the primary steps, this means:
 
-There are six PBS jobs included in Germline-ShortV for samples which have been aligned to the human reference genome (GRCh38/hg38 + ALT contigs) using the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. The first job “HaplotypeCaller” calls raw SNPs and indels at 3,200 evenly-sized genomic intervals and multiple samples in parallel. “GatherVCFs” gathers per interval VCF files into per sample GVCF files, operating at multiple samples in parallel. We recommend backing up per sample GVCFs into the University of Sydney’s Research Data Store or similar. The sample GVCFs can be included in “Joint-calling” jobs in future projects as more samples are sequenced and are included in your cohort, saving compute resources. 
+* HaplotypeCaller:
+ * The number of scatter tasks = N samples x 3,200 genomic intervals
+ * 3,200 VCFs are gathered per sample to create a `sample.g.vcf.gz`
+* GenomicsDBImport:
+ * The number of scatter tasks = 3,200 genomic intervals
+ * Each output is used as input for GenotypeGVCFs
+* GenotypeGVCFs:
+ * The number of scatter tasks = 3,200 genomic intervals
+ * 3,200 VCFs are gathered into a single `cohort.g.vcf.gz`
+* Variant Quality Score Recalibration
+ * Is relatively quick and scattering is not required.
+ * Inputs are `cohort.g.vcf.gz` and the final output is written to `cohort.recalibrated.vcf.gz`
 
-“Joint calling” includes three PBS jobs and commences with multiple per sample GVCF files generated from the two jobs in “Variant calling”. The job “GenomicsDBImport” consolidates sample GVCFs into databases and “GenotypeGVCFs” joint-calls variants at the pre-defined 3,200 genomic intervals in parallel. The resulting multiple-sample VCFs obtained for 3,200 intervals are then gathered with GatherVCFs to obtain a single cohort VCF file. Variants in the cohort VCF file are filtered and refined, first by removing sites with excess heterozygosity (indicative of technical artefacts). GATK’s variant quality score recalibration (VQSR) methods including the tools VariantRecalibrator and ApplyVQSR are then applied to SNPs and indels separately. VQSR is a machine learning method that uses high quality variant resources (1000 Genomes, omni, hapmap) as a training set to profile properties of probable true variants from technical artefacts. Variant calling metrics are then obtained from the Analysis ready cohort VCFs containing SNPs and indels. These files should be backed up before proceeding with downstream analysis. 
+The 3,200 genomic intervals have been ordered from longest to shortest task duration for job maximum efficiency. Some [genomic intervals are excluded](#excluded-sites) - these typically include repetitive regions which can significantly impede on compute performance. 
 
 ### Excluded sites
 
-By default, some genomic sites that significantly impede on compute performance are excluded from calling. Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.bed](https://gist.github.com/chapmanb/4c40f961b3ac0a4a22fd) file. The BED file contains:
+Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.bed](https://gist.github.com/chapmanb/4c40f961b3ac0a4a22fd) file. The BED file contains:
 
 * telemeres
 * centromeres
