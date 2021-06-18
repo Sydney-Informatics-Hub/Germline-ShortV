@@ -124,7 +124,7 @@ Sample GVCFs can be used again if you wish perform multi-sample calling with a b
 ## Set up
 
 * For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs))
-* For sample BAMs aligned to other reference genomes, follow [Non-human organisms](#non-human-organisms)
+* For sample BAMs aligned to other reference genomes, follow [non-human organisms](#non-human-organisms)
  
 ### Human (GRCh38/hg38 + ALT contigs)
  
@@ -133,17 +133,18 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
 
 1. Change to the working directory where your final bams were created. The required inputs are:
-* ensure you have a `<cohort>.config` file, that is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) is perfect). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
-* ensure you have a `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
- * ensure you have `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - script for this is coming soon**
+* `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
+* `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
+ * `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - follow set up for [non-human organisms](#non-human-organisms)**
 
-Your high level directory structure should resemble the following:
+Your current working directory should resemble the following:
 
 ```bash
 |-- Align_split
 |-- BQSR_apply
 |-- BQSR_tables
 |-- Check_split_fastq
+|-- cohort.config
 |-- Dedup_sort
 |-- FastQC
 |-- Fastq
