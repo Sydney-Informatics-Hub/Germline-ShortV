@@ -40,7 +40,7 @@ The 3,200 genomic intervals have been ordered from longest to shortest task dura
 
 ### Excluded sites
 
-Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.bed](https://gist.github.com/chapmanb/4c40f961b3ac0a4a22fd) file. The BED file contains:
+Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.bed](https://gist.github.com/chapmanb/4c40f961b3ac0a4a22fd) file. This is included in the `References` dataset. The BED file contains:
 
 * telemeres
 * centromeres
@@ -112,15 +112,13 @@ sh gatk4_genomicsdbimport_make_input.sh /path/to/cohort.config
 qsub gatk4_genomicsdbimport_run_parallel.pbs`
 ```
 2. Check interval GenomicsDBImport databases are present, check log files for errors for each interval present in the scatter list file. Report interval duration and Runtime.totalMemory() to `Logs/GATK4_GenomicsDBImport/GATK_duration_memory.txt`. 
-
-* Tip - if you have tasks that failed, it is likely that it needs more memory. Compute resources in the `gatk4_genomicsdbimport_missing.sh` task script (run in parallel by `gatk4_genomicsdbimport_missing_run_parallel.pbs`) by default allocates more memory per task, but you may want to make further adjustments.
-
 ```
 sh gatk4_genomicsdbimport_check.sh /path/to/cohort.config
 
 # Only run the job below if there were tasks that failed
 qsub gatk4_genomicsdbimport_missing_run_parallel.pbs
 ```
+__Tip__ - if you have tasks that failed, it is likely that it needs more memory. Compute resources in the `gatk4_genomicsdbimport_missing.sh` task script (run in parallel by `gatk4_genomicsdbimport_missing_run_parallel.pbs`) by default allocates more memory per task, but you may want to make further adjustments to the `--java-options -Xmx58g` flag.
 
 ### GenotypeGVCFs
 
@@ -153,7 +151,8 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
 
 1. Change to the working directory where your final bams were created. The required inputs are:
-* `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. 
+* `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. Output files and directories will be named using the config prefix `<cohort>`.
+   * _Disclaimer_ LabSampleID's ending in -T, -P or -M [see cancer studies](#cancer-studies) will be ignored by default.
 * `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
  * `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - follow set up for [non-human organisms](#non-human-organisms)**
 
