@@ -53,9 +53,11 @@ Excluded sites are listed in the Delly group's [sv_repeat_telomere_centromere.be
 
 A `<cohort>.config` file containing both tumour and normal samples can be used to call germline variants on the normal samples only. The make input files will ignore writing inputs for tumour samples. Tumour samples are specified in `LabSampleID` column the `<cohort>.config` file if they __end__ in:
 
-* -T.* (e.g. -T, -T1, -T100). This is used to indicate tumour samples belonging.
-* -P.* (e.g. -P, -P1, -P100). This can be used to specify primary tumour samples belonging to a single patient.
-* -M.* (e.g. -M, -M1, -MCL1). This can be used to specify metastatic tumour samples belonging to a single patient.
+* -T.* (e.g. Sample1-T, Sample1-T1, Sample1-T100). This is used to indicate different tumour samples belonging to Sample1.
+* -P.* (e.g. Sample2-P, Sample2-P1, Sample2-P100). This can be used to specify primary tumour samples belonging to Sample2.
+* -M.* (e.g. Sample3-M, Sample3-M1, Sample3-MCL1). This can be used to specify metastatic tumour samples belonging to Sample3. 
+
+A normal sample with `LabSampleID` as Sample1, Sample1-B, Sample1-N, will be considered "normal" and be included in this germline variant calling pipeline.
 
 ## Workflow Diagram
 
