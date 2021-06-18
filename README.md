@@ -18,7 +18,7 @@ The primary steps to this pipeline are:
 Most jobs follow a typical pattern which is:
 
 1. Creating inputs file using `<job>_make_input.sh <path/to/cohort.config>`
-2. Adjusting compute resources and submitting your job `by qsub <job>_run_parallel.pbs`. (Benchmarking metrics)[# Benchmarking metrics] are available on this page as a guide for compute resources required for your dataset. 
+2. Adjusting compute resources and submitting your job `by qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. 
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
