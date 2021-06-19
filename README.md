@@ -16,8 +16,8 @@ The primary steps to this pipeline are:
 Most jobs follow a typical pattern which is:
 
 1. Creating an inputs file using `<job>_make_input.sh <path/to/cohort.config>`
-2. Adjusting compute resources and submitting your job by `qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. 
-3. Performing a check on the job by checking for expected output, and/or, checking for error messages in log files. Inputs will be written for failed tasks for job re-submission
+2. Adjusting compute resources and submitting your job by `qsub <job>_run_parallel.pbs`. [Benchmarking metrics](#benchmarking-metrics) are available on this page as a guide for compute resources required for your dataset. This runs `<job>.sh` in parallel for the inputs file created (1 line = 1 task). Default parameters are typically used otherwise you can modify command specific parameters in `<job>.sh`. 
+3. Performing a check using `<job>_check.sh` on the job by checking for expected output, and/or, checking for error messages in log files. Inputs will be written for failed tasks for job re-submission with `<job>_missing_run_parallel.pbs`
 
 ## Human datasets: GRCh38/hg38 + ALT contigs reference
 
@@ -31,7 +31,7 @@ This pipeline has been optimised for BAMs mapped to the GRCh38/hg38 + ALT contig
   * Each output is used as input for GenotypeGVCFs
 * GenotypeGVCFs:
   * The number of scatter tasks = 3,200 genomic intervals
-  * 3,200 VCFs are gathered into a single `cohort.g.vcf.gz`
+  * 3,200 VCFs are gathered into a single, co-ordinate sorted `cohort.sorted.vcf.gz`
 * Variant Quality Score Recalibration
   * Is relatively quick and scattering is not required.
   * Inputs are `cohort.g.vcf.gz` and the final output is written to `cohort.recalibrated.vcf.gz`
@@ -65,11 +65,13 @@ A normal sample with `LabSampleID` as Sample1, Sample1-B, Sample1-N, will be con
 
 ## User guide
 
-The following will perform germline short variant calling for all samples present in `<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts. 
+The following will perform germline short variant calling for samples present in `<cohort>.config`. The scripts use relative paths and the `Germline-ShortV` is your working directory. Adjust compute resources requested in the `.pbs` files using the guide provided in each of the PBS job scripts.
+
+This guide is intended for use of the scripts in this repository. For information on [GATK's Best Practice Workflow for Germline short variant discovery please see their website](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-).
 
 ### Set up
 
-1. At minimum, you will need a `<cohort>.config` and Your current working directory should contain:
+1. At minimum, you will need a `<cohort>.config` and your current working directory should contain:
 
 * `Final_bams` directory with your `<sample>.final.bam` and `<labsampleid>.final.bai` files within. 
 * `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)
@@ -100,8 +102,6 @@ qsub gatk4_hc_missing_run_parallel.pbs
 sh gatk4_hc_gathervcfs_make_input.sh /path/to/cohort.config
 qsub gatk4_hc_gathervcfs_run_parallel.pbs
 ```
-4. Backup GVCFs
-
 Sample GVCFs can be used again if you wish perform multi-sample calling with a bigger cohort (e.g. when you sequence new samples), so we recommend backing these up.
 
 ### GenomicsDBImport
@@ -118,18 +118,26 @@ sh gatk4_genomicsdbimport_check.sh /path/to/cohort.config
 # Only run the job below if there were tasks that failed
 qsub gatk4_genomicsdbimport_missing_run_parallel.pbs
 ```
-__Tip__ - if you have tasks that failed, it is likely that it needs more memory. Compute resources in the `gatk4_genomicsdbimport_missing.sh` task script (run in parallel by `gatk4_genomicsdbimport_missing_run_parallel.pbs`) by default allocates more memory per task, but you may want to make further adjustments to the `--java-options -Xmx58g` flag.
+__Tip__ - if you have tasks that failed, it is likely that it needs more memory. The memory and task duration to process each interval is variable to the number and coverage of your samples. The `gatk4_genomicsdbimport_check.sh` script will output duration and memory used per task from step 1 in `Logs/GATK4_GenomicsDBImport/GATK_duration_memory.txt` which is handy for benchmarking. Compute resources in the `gatk4_genomicsdbimport_missing.sh` task script (run in parallel by `gatk4_genomicsdbimport_missing_run_parallel.pbs`) by default allocates more memory per task, but you may want to make further adjustments to the `--java-options -Xmx58g` flag.
 
 ### GenotypeGVCFs
 
-7. Perform joint calling using GATK's GenotypeGVCFs by:
-  * `sh gatk4_genotypegvcfs_make_input.sh <cohort>`
-  * `qsub gatk4_genotypegvcfs_run_parallel.pbs`
-8. Check interval VCFs made by GenotypeGVCFs. Check for errors in logs, print duration, Runtime.totalMemory() per interval, re-run tasks that failed
-  * `sh gatk4_genotypegvcfs_missing_make_input.sh <cohort>`
-  * `qsub gatk4_genotypegvcfs_missing_run_parallel.pbs`
-9. Gather joint-genotyped interval VCFs into a multisample GVCF. 
-  * `qsub gatk4_gather_sort_vcfs.pbs`
+1. Perform joint calling using GATK's GenotypeGVCFs by creating task inputs, adjusting compute resources and submitting the PBS script:
+```
+ sh gatk4_genotypegvcfs_make_input.sh /path/to/cohort.config
+ qsub gatk4_genotypegvcfs_run_parallel.pbs
+```
+2. Check all GenotypeGVCFs scatter outputs `<cohort>.<interval>.vcf.gz` and `<cohort>.<interval>.vcf.gz.tbi` exists and are not empty. Report interval duration and Runtime.totalMemory() to `Logs/GATK4_GenotypeGVCFs/GATK_duration_memory.txt`. 
+```
+sh gatk4_genotypegvcfs_check.sh /path/to/cohort.config
+
+# Only run the job below if there were tasks that failed
+qsub gatk4_genotypegvcfs_missing_run_parallel.pbs
+```
+3. Gather joint-genotyped interval VCFs into a multisample GVCF. 
+```
+qsub gatk4_gather_sort_vcfs.pbs
+```
 
 ### Variant Quality Score Recalibration
 
@@ -192,7 +200,7 @@ To create a list of intervals for scattering tasks:
 * Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
 * Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
   * `-XL <exclude_intervals.bed>` is optional - it allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc).
-  * It is recommended to set <number_of_scatter_intervals> such that the reference genome size/<number_of_scatter_intervals> = 1000000 (as benchmarking metrics are based of 1Mb sized intervals)
+  * It is recommended to set <number_of_scatter_intervals> such that the reference genome size/<number_of_scatter_intervals> = 1000000 (as benchmarking metrics are based of 1Mb sized intervals). I do not recommend going any smaller than that as the tasks become too short in duration and can cause extra overhead. 
 * Run `find ShortV_intervals/ -name "*interval_list" -printf "%f\n" > ShortV_intervals/interval.list` to create a single text file containing the `interval_list` files created with `gatk SplitIntervals`
   * The order of the intervals in this file are used to order tasks in the job
   * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
