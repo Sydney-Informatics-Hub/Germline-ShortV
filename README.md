@@ -90,7 +90,7 @@ cd Germline-ShortV
 sh gatk4_hc_make_input.sh /path/to/cohort.config
 qsub gatk4_hc_run_parallel.pbs
 ```
-2. Check HaplotypeCaller job. The script checks that all sample interval `.vcf` and `.vcf.idx` files exist, and for any files in `Logs/GATK4_HC_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`. If there are failed tasks, investigate cause of errors using sample interval log files in `Logs/GATK4_HC`
+2. Check HaplotypeCaller job. The script checks that all sample interval `.vcf` and `.vcf.idx` files exist, and for any error files in `Logs/GATK4_HC_error_capture`. Any failed tasks will be written to `Inputs/gatk4_hc_missing.inputs`. If there are failed tasks, investigate cause of errors using sample interval log files in `Logs/GATK4_HC`
 ```
 sh gatk4_hc_check.sh /path/to/cohort.config
 
@@ -99,8 +99,15 @@ qsub gatk4_hc_missing_run_parallel.pbs
 ```
 3. Merge HaplotypeCaller per interval VCFs into single sample-level GVCFs creating by creating task inputs, adjusting compute resources and submitting the PBS script:
 ```
-sh gatk4_hc_gathervcfs_make_input.sh /path/to/cohort.config
-qsub gatk4_hc_gathervcfs_run_parallel.pbs
+sh gatk4_gathervcfs_make_input.sh /path/to/cohort.config
+qsub gatk4_gathervcfs_run_parallel.pbs
+```
+4. Check GatherVcfs job. The script checks that all `<sample>.g.vcf.gz` and `<sample>.g.vcf.gz.tbi` files exist, and for any error files in `Logs/GATK4_GatherVCFs_error_capture`. Any failed tasks will be written to `Inputs/gatk4_gathervcfs_missing.inputs`. If there are failed tasks, investigate cause of errors using sample interval log files in `Logs/GATK4_GatherVCFs`
+```
+sh gatk4_gathervcfs_check.sh
+
+# Only run the job below if there were tasks that failed
+qsub gatk4_gathervcfs_missing_run_parallel.pbs
 ```
 Sample GVCFs can be used again if you wish perform multi-sample calling with a bigger cohort (e.g. when you sequence new samples), so we recommend backing these up.
 
@@ -141,11 +148,24 @@ qsub gatk4_gather_sort_vcfs.pbs
 
 ### Variant Quality Score Recalibration
 
-10. Run Variant Quality Score Recalibration (VQSR) by:
-  *  Change cohort=<cohort>
-  * `qsub gatk4_vqsr.pbs`
-  * Check `<cohort>.recalibrated.metrics.variant_calling_detail_metrics`
-11. Back up cohort, genotyped, recalibrated GVCFs and varaint calling metrics 
+The `gatk4_vqsr.pbs` script runs a series of single core commands that performs the workflow described [in GATK's documentation - 1. VQSR: filter a cohort callset with VariantRecalibrator & ApplyVQSR
+](https://gatk.broadinstitute.org/hc/en-us/articles/360035531112--How-to-Filter-variants-either-with-VQSR-or-by-hard-filtering#1.1). This includes:
+
+* Filtering excessive heterozygous sites. This is only recommended for large cohorts, please read GATK's recommendations for more detail and only use this if it applies to your cohort
+* Create variant-sites only VCF
+* Perform `VariantRecalibrator` for indels and SNPs
+* Perform `ApplyVQSR` for indels and SNPs to get final, indexed `cohort.final.recalibrated.vcf.gz`
+* Perform `CollectVariantCallingMetrics` on the final VCFs to get metrics in `cohort.final.recalibrated.metrics.variant_calling_detail_metrics`
+
+1. Run these steps editing `gatk4_vqsr` by:
+```
+Change cohort=/path/to/cohort.conifg
+
+# Adjusting memory, more memory is required for larger cohorts (more variants)
+qsub gatk4_vqsr.pbs`
+```
+
+Back up cohort, genotyped, recalibrated GVCFs and varaint calling metrics.
 
 ## Set up
 
