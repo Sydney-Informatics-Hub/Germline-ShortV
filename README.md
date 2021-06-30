@@ -187,9 +187,12 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 * `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
 
 2. Ensure you have scatter-gather intervals set up for your reference genome. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome. You can use this pipeline with other model or non-model organisms with an additional set-up step.
- 
-* For sample BAMs aligned to human (GRCh38/hg38 + ALT contigs), ensure you have the `References` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
-* For sample BAMs aligned to other reference genomes, create a list of intervals for scattering tasks by: 
+
+ __For samples aligned to human (GRCh38/hg38 + ALT contigs)__
+* Ensure you have the `Reference` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
+
+ __For samples aligned to other reference genomes__
+Create a list of intervals for scattering tasks by: 
   * Change to your `Reference` directory, containing the reference genome you wish to use
   * Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
   * Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
