@@ -185,14 +185,9 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 * `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. Output files and directories will be named using the config prefix `<cohort>`.
    * _Disclaimer_ LabSampleID's ending in -T, -P or -M [see cancer studies](#cancer-studies) will be ignored by default.
 * `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
+* A `Reference` directory, containing an indexed copy of the reference genome you aligned your reads to, and scatter-gather intervals for scattering tasks. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome (required references are available through [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). Please follow the steps below if you have aligned your reads to a different reference genome
 
-2. Ensure you have scatter-gather intervals set up for your reference genome. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome. You can use this pipeline with other model or non-model organisms with an additional set-up step.
-
- ### For samples aligned to human (GRCh38/hg38 + ALT contigs)
-
- Ensure you have the `Reference` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
-
- ### For samples aligned to other reference genomes
+ ### For non-human organisms or for BAMs not aligned to GRCh38/hg38 + ALT contigs
 
  Create a list of intervals for scattering tasks by: 
   * Changing to your `Reference` directory, containing the reference genome you wish to use
