@@ -69,9 +69,7 @@ The following will perform germline short variant calling for samples present in
 
 This guide is intended for use of the scripts in this repository. For information on [GATK's Best Practice Workflow for Germline short variant discovery please see their website](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-).
 
-### Set up
-
-1. At minimum, you will need a `<cohort>.config` and your current working directory should contain:
+At minimum, you will need a `<cohort>.config` and your current working directory should contain:
 
 * `Final_bams` directory with your `<sample>.final.bam` and `<labsampleid>.final.bai` files within. 
 * `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)
