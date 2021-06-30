@@ -188,11 +188,11 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 
 2. Ensure you have scatter-gather intervals set up for your reference genome. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome. You can use this pipeline with other model or non-model organisms with an additional set-up step.
 
- #### For samples aligned to human (GRCh38/hg38 + ALT contigs)
+ ### For samples aligned to human (GRCh38/hg38 + ALT contigs)
 
  Ensure you have the `Reference` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
 
- #### For samples aligned to other reference genomes
+ ### For samples aligned to other reference genomes
 
  Create a list of intervals for scattering tasks by: 
   * Changing to your `Reference` directory, containing the reference genome you wish to use
@@ -204,7 +204,8 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
     * The order of the intervals in this file are used to order tasks in the job
     * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
 
-
+### Directory structure
+ 
 Your current working directory should resemble the following:
 
 ```bash
