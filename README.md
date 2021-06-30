@@ -179,7 +179,7 @@ GATK periodically likes to change flag names and how they are called, please kee
  
 ## Required inputs
  
-The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
+Please ensure that you have the required inputs below. If you have used the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline, you should the inputs set up correctly but you should check your `Reference` directory for scatter-gathering operations.
 
 1. Change to the working directory where your final bams were created. The required inputs are:
 * `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. Output files and directories will be named using the config prefix `<cohort>`.
