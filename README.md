@@ -188,12 +188,14 @@ The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://gi
 
 2. Ensure you have scatter-gather intervals set up for your reference genome. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome. You can use this pipeline with other model or non-model organisms with an additional set-up step.
 
- __For samples aligned to human (GRCh38/hg38 + ALT contigs)__
-* Ensure you have the `Reference` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
+ #### For samples aligned to human (GRCh38/hg38 + ALT contigs)
 
- __For samples aligned to other reference genomes__
-Create a list of intervals for scattering tasks by: 
-  * Change to your `Reference` directory, containing the reference genome you wish to use
+ Ensure you have the `Reference` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
+
+ #### For samples aligned to other reference genomes
+
+ Create a list of intervals for scattering tasks by: 
+  * Changing to your `Reference` directory, containing the reference genome you wish to use
   * Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
   * Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
     * `-XL <exclude_intervals.bed>` is optional - it allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc).
@@ -201,6 +203,7 @@ Create a list of intervals for scattering tasks by:
   * Run `find ShortV_intervals/ -name "*interval_list" -printf "%f\n" > ShortV_intervals/interval.list` to create a single text file containing the `interval_list` files created with `gatk SplitIntervals`
     * The order of the intervals in this file are used to order tasks in the job
     * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
+
 
 Your current working directory should resemble the following:
 
