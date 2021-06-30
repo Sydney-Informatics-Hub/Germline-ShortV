@@ -176,21 +176,28 @@ The scripts have been tested and are compatible with:
 * samtools/1.10
 
 GATK periodically likes to change flag names and how they are called, please keep this in mind if using a different version of GATK :).
-
-* For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs))
-* For sample BAMs aligned to other reference genomes, follow [non-human organisms](#non-human-organisms)
  
-### Human (GRCh38/hg38 + ALT contigs)
+## Required inputs
  
-The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline and human datasets using the GRCh38/hg38 + ALT contigs reference. You can still use this pipeline if you have generated BAMs with an alternate pipeline following the instructions below. The scripts use relative paths, so correct set-up is important. 
-
-Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
+The Germline-ShortV pipeline works seamlessly with the [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) pipeline. Upon completion of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM):
 
 1. Change to the working directory where your final bams were created. The required inputs are:
 * `<cohort>.config` file. This is a tab-delimited file including `#SampleID	LabSampleID	SeqCentre	Library(default=1)` (the same config or a subset of samples from the config used in [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM)). Sample GVCFs and multi-sample VCFs will be created for samples included in `<cohort>.config`. Output files and directories will be named using the config prefix `<cohort>`.
    * _Disclaimer_ LabSampleID's ending in -T, -P or -M [see cancer studies](#cancer-studies) will be ignored by default.
 * `Final_bams` directory, containing `<labsampleid>.final.bam` and `<labsampleid>.final.bai` files. <labsampleid> should match LabSampleID column in your `<cohort>.config` file. The output of [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM) will be structured this way, otherwise you can easily create this structure by creating symbolic links to your sample BAM and BAI files in `Final_bams`
- * `References` directory from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM). This contains input data required for Germline-ShortV (ordered and pre-definted intervals and reference variants). **For other organisms you will need to create the scattered interval files - follow set up for [non-human organisms](#non-human-organisms)**
+
+2. Ensure you have scatter-gather intervals set up for your reference genome. This pipeline has been pre-set up and optimised for the GRCh38/hg38 + ALT contigs reference genome. You can use this pipeline with other model or non-model organisms with an additional set-up step.
+ 
+* For sample BAMs aligned to human (GRCh38/hg38 + ALT contigs), ensure you have the `References` directory (available through from [Fastq-to-BAM](https://github.com/Sydney-Informatics-Hub/Fastq-to-BAM).
+* For sample BAMs aligned to other reference genomes, create a list of intervals for scattering tasks by: 
+  * Change to your `Reference` directory, containing the reference genome you wish to use
+  * Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
+  * Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
+    * `-XL <exclude_intervals.bed>` is optional - it allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc).
+    * It is recommended to set <number_of_scatter_intervals> such that the reference genome size/<number_of_scatter_intervals> = 1000000 (as benchmarking metrics are based of 1Mb sized intervals). I do not recommend going any smaller than that as the tasks become too short in duration and can cause extra overhead. 
+  * Run `find ShortV_intervals/ -name "*interval_list" -printf "%f\n" > ShortV_intervals/interval.list` to create a single text file containing the `interval_list` files created with `gatk SplitIntervals`
+    * The order of the intervals in this file are used to order tasks in the job
+    * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
 
 Your current working directory should resemble the following:
 
@@ -212,26 +219,7 @@ Your current working directory should resemble the following:
 `-- Split_fastq
 ```
 
-2. Clone this respository by `git clone https://github.com/Sydney-Informatics-Hub/Germline-ShortV.git`
-
-`Germline-ShortV` will be your working directory and you can now refer to the main [user guide](#user-guide).
-
-## Non-human organisms
-
-This pipeline can be used on reference datasets other than GRCh38/hg38 + ALT contigs, including other model or non-model organisms. You will need to complete an additional set-up step to create a list of intervals for scatter-gathering in this pipeline.
-
-### Create a list of intervals
-
-To create a list of intervals for scattering tasks:
-
-* Change to your `Reference` directory, containing the reference genome you wish to use
-* Load the version of GATK 4 that you wish to use, e.g. `module load gatk/4.1.8.1`
-* Run `gatk SplitIntervals -R <reference.fa> --scatter-count <number_of_scatter_intervals> -XL <exclude_intervals.bed> -O ShortV_intervals`
-  * `-XL <exclude_intervals.bed>` is optional - it allows exclusion of intervals that can impede on compute efficiency and performance (e.g. centromeres, telomeres, unplaced and unlocalised contigs, etc).
-  * It is recommended to set <number_of_scatter_intervals> such that the reference genome size/<number_of_scatter_intervals> = 1000000 (as benchmarking metrics are based of 1Mb sized intervals). I do not recommend going any smaller than that as the tasks become too short in duration and can cause extra overhead. 
-* Run `find ShortV_intervals/ -name "*interval_list" -printf "%f\n" > ShortV_intervals/interval.list` to create a single text file containing the `interval_list` files created with `gatk SplitIntervals`
-  * The order of the intervals in this file are used to order tasks in the job
-  * To optimise the pipeline for your reference genome/species of interest, I would recommend running the pipeline to HaplotypeCaller on a small dataset, and ordering this list from longest to shortest duration, before running this on the full dataset. You can get task duration for a sample using `perl gatk4_duration_mem.pl Logs/GATK4_HC/<labsampleid>`
+You can now refer to the main [user guide](#user-guide).
 
 # Benchmarking metrics
 
