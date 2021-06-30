@@ -169,6 +169,16 @@ Back up cohort, genotyped, recalibrated GVCFs and varaint calling metrics.
 
 ## Set up
 
+## Tools
+
+The scripts have been tested and are compatible with:
+
+* gatk/4.1.2.0
+* gatk/4.1.8.1
+* samtools/1.10
+
+GATK periodically likes to change flag names and how they are called, please keep this in mind if using a different version of GATK :).
+
 * For sample BAMs aligned to the human reference genome, follow [Human (GRCh38/hg38 + ALT contigs)](#human-(grc38/hg38-+-ALT-contigs))
 * For sample BAMs aligned to other reference genomes, follow [non-human organisms](#non-human-organisms)
  
