@@ -201,24 +201,13 @@ Please ensure that you have the required inputs below. If you have used the [Fas
 
 ### Directory structure
  
-Your current working directory should resemble the following:
+Your current working directory should resemble the following at minimum:
 
 ```bash
-|-- Align_split
-|-- BQSR_apply
-|-- BQSR_tables
-|-- Check_split_fastq
 |-- cohort.config
-|-- Dedup_sort
-|-- FastQC
-|-- Fastq
-|-- Final_bams
-|-- HLA_fastq
-|-- Merge_align
-|-- Reference
-|-- Scripts
-|-- SplitDisc
-`-- Split_fastq
+|-- Final_bams (containing indexed sample BAM files)
+|-- Reference (containing an indexed reference genome to which the BAMs were created with, scatter intervals and optionally known variants for VQSR)
+|-- Germline-ShortV
 ```
 
 You can now refer to the main [user guide](#user-guide).
