@@ -148,7 +148,7 @@ Germline-ShortV jobs consist of strong scaling jobs and weak scaling jobs. Haplo
 
 The benchmarking results provided were obtained from a human dataset of 20 samples with an average coverage of 35X.
  
- | #JobName                     | CPUs_requested | Mem_used | CPUtime    | Walltime_used | JobFS_used | Efficiency | Service_units | Queue   | Samples processed | Number of tasks | NCPUs per task | Average mem allowed per task(GB) | Memory Efficiency |
+ | #JobName                     | CPUs_requested | Mem_used | CPUtime    | Walltime_used | JobFS_used | CPU Efficiency | Service_units | Queue   | Samples processed | Number of tasks | NCPUs per task | Average mem allowed per task(GB) | Memory Efficiency |
 |------------------------------|----------------|----------|------------|---------------|------------|------------|---------------|---------|-------------------|-----------------|----------------|----------------------------------|-------------------|
 | gatk4_hc_960                 | 960            | 3.29TB   | 1675:26:10 | 1:46:42       | 20.43MB    | 0.98       | 3414.4        | normal  | 20                | 64000           | 1              | 4                                | 0.88              |
 | gatk4_hc_1920                | 1920           | 6.52TB   | 1693:46:28 | 0:54:08       | 20.55MB    | 0.98       | 3464.5        | normal  | 20                | 64000           | 1              | 4                                | 0.87              |
@@ -168,7 +168,7 @@ The benchmarking results provided were obtained from a human dataset of 20 sampl
 
 The benchmarking results provided were obtained from a human dataset (Platinum Genomes) consisting of 6 samples with an average coverage of 100X. 
  
- | #JobName                         | CPUs_requested | Mem_requested | CPUtime    | Walltime_used | JobFS_used | Efficiency | Service_units(CPU_hours) | Job_exit_status | NCPUS_per_task | Ave_mem(GB)_allocated_per_task | Queue    | Memory Efficiency | Parallel tasks | Total tasks |
+ | #JobName                         | CPUs_requested | Mem_requested | CPUtime    | Walltime_used | JobFS_used | CPU Efficiency | Service_units(CPU_hours) | Job_exit_status | NCPUS_per_task | Ave_mem(GB)_allocated_per_task | Queue    | Memory Efficiency | Parallel tasks | Total tasks |
 |----------------------------------|----------------|---------------|------------|---------------|------------|------------|--------------------------|-----------------|----------------|--------------------------------|----------|-------------------|----------------|-------------|
 | gatk4_hc.o                       | 576            | 2.23TB        | 1156:29:58 | 2:01:10       | 11.51MB    | 0.99       | 2326.4                   | 271             | 1              | 3.9                            | normal   | 0.90              | 576            | 19200       |
 | gatk4_hc_2.o                     | 1152           | 4.45TB        | 532:17:09  | 0:39:12       | 11.51MB    | 0.71       | 1505.28                  | 0               | 1              | 3.9                            | normal   | 0.80              | 1152           | 19200       |
