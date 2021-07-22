@@ -27,7 +27,7 @@
 #########################################################
 
 # Unhash and use to manage inputs/outputs for benchmarking
-run_num=_4
+# run_num=_4
 
 set -e
 
