@@ -143,6 +143,27 @@ This step runs GATK 4's HaplotypeCaller in a scatter-gather fashion. Each task i
 # Benchmarking metrics
 
 The benchmarking results provided were obtained from a human dataset with an average coverage of 35X.
+ 
+## Summary 
+ 
+| #JobName                     | CPUs_requested | Mem_used  | CPUtime    | Walltime_used | JobFS_used | Efficiency | Service_units | Queue   | Samples processed | Number of tasks | NCPUs per task | Average mem allowed per task(GB) | Memory Efficiency |
+|------------------------------|----------------|-----------|------------|---------------|------------|------------|---------------|---------|-------------------|-----------------|----------------|----------------------------------|-------------------|
+| gatk4_hc_960                 | 960            | 3.29TB    | 1675:26:10 | 1:46:42       | 20.43MB    | 0.98       | 3414.4        | normal  | 20                | 64000           | 1              | 4                                | 0.88              |
+| gatk4_hc_1920                | 1920           | 6.52TB    | 1693:46:28 | 0:54:08       | 20.55MB    | 0.98       | 3464.5        | normal  | 20                | 64000           | 1              | 4                                | 0.87              |
+| gatk4_hc_2880                | 2880           | 9.15TB    | 1744:28:32 | 0:39:07       | 20.55MB    | 0.93       | 3755.2        | normal  | 20                | 64000           | 1              | 4                                | 0.81              |
+| gatk4_hc_3840                | 3840           | 11.42TB   | 2154:15:26 | 0:40:05       | 20.55MB    | 0.84       | 5130.7        | normal  | 20                | 64000           | 1              | 4                                | 0.76              |
+| gatk4_gathervcfs_5           | 5              | 160.0GB   | 10:22:28   | 2:43:03       | 8.05MB     | 0.76       | 40.8          | hugemem | 20                | 20              | 1              | 32                               | 1.00              |
+| gatk4_gathervcfs_10          | 10             | 320.0GB   | 9:56:00    | 1:17:49       | 8.07MB     | 0.77       | 38.9          | hugemem | 20                | 20              | 1              | 32                               | 1.00              |
+| gatk4_gathervcfs_15          | 15             | 480.0GB   | 13:28:19   | 1:44:05       | 8.08MB     | 0.52       | 78.1          | hugemem | 20                | 20              | 1              | 32                               | 1.00              |
+| gatk4_gathervcfs_20          | 20             | 486.12GB  | 28:21:05   | 1:49:46       | 8.09MB     | 0.77       | 109.8         | hugemem | 20                | 20              | 1              | 32                               | 0.76              |
+| gatk4_genomicsdbimport_48    | 48             | 746.06GB  | 84:38:42   | 2:29:53       | 8.92MB     | 0.71       | 359.7         | hugemem | 20                | 3200            | 1              | 31                               | 0.51              |
+| gatk4_genomicsdbimport_192_n | 192            | 519.53GB  | 119:33:16  | 3:41:05       | 8.93MB     | 0.17       | 1414.9        | normal  | 20                | 3200            | 4              | 16                               | 0.68              |
+| gatk4_genomicsdbimport_96    | 96             | 1.48TB    | 155:27:45  | 2:28:12       | 8.92MB     | 0.66       | 711.4         | hugemem | 20                | 3200            | 1              | 31                               | 0.51              |
+| gatk4_genomicsdbimport_144   | 144            | 931.71GB  | 122:04:35  | 3:14:25       | 8.92MB     | 0.26       | 1399.8        | hugemem | 20                | 3200            | 1              | 31                               | 0.21              |
+| gatk4_genotypegvcfs_48       | 48             | 326.98GB  | 94:44:02   | 5:21:39       | 8.88MB     | 0.37       | 772.0         | hugemem | 20                | 3200            | 2              | 63                               | 0.22              |
+| gatk4_genotypegvcfs_96       | 96             | 701.23GB  | 92:53:48   | 2:43:46       | 8.88MB     | 0.35       | 786.1         | hugemem | 20                | 3200            | 2              | 63                               | 0.24              |
+| gatk4_genotypegvcfs_144      | 144            | 1.05TB    | 92:09:53   | 1:58:00       | 8.88MB     | 0.33       | 849.6         | hugemem | 20                | 3200            | 2              | 63                               | 0.24              |
+| gatk4_genomicsdbimport_48_h  | 48             | 435.48 GB | 131:03:01  | 3:41:18       | 9383082b   | 0.74       | 531.3         | hugemem | 20                | 3200            | 1              | 31                               | 0.29              |
 
 ## Step 1. Benchmarking: HaplotypeCaller
 
