@@ -34,7 +34,7 @@ fi
 
 # Can include run_num to manage input and log files for benchmarking
 # Otherwise, hash out
-run_num=_4
+# run_num=_4
 
 config=$1
 cohort=$(basename $config | cut -d'.' -f1)
@@ -55,7 +55,7 @@ inputfile=${INPUTS}/gatk4_genotypegvcfs$run_num.inputs
 num_int=`wc -l ${scatterlist} | cut -d' ' -f 1`
 
 mkdir -p ${INPUTS} ${outdir} ${logdir} ${errdir}
-rm -rf ${INPUTS}/gatk4_genotypegvcfs.inputs
+rm -rf ${inputfile}
 
 echo "$(date): Creating inputs for ${num_int} genomic intervals."
 echo "$(date): GenotypeGVCF output will be written to ${outdir}"
