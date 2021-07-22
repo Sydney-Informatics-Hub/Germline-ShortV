@@ -1,0 +1,67 @@
+#!/bin/bash
+
+#########################################################
+#
+# Platform: NCI Gadi HPC
+# Usage:
+# Version: 2.0
+#
+# For more details see: https://github.com/Sydney-Informatics-Hub/Germline-ShortV
+#
+# If you use this script towards a publication, support us by citing:
+#
+# Suggest citation:
+# Sydney Informatics Hub, Core Research Facilities, University of Sydney,
+# 2021, The Sydney Informatics Hub Bioinformatics Repository, <date accessed>,
+# https://github.com/Sydney-Informatics-Hub/Germline-ShortV
+#
+# Please acknowledge the Sydney Informatics Hub and the facilities:
+#
+# Suggested acknowledgement:
+# The authors acknowledge the technical assistance provided by the Sydney
+# Informatics Hub, a Core Research Facility of the University of Sydney
+# and the Australian BioCommons which is enabled by NCRIS via Bioplatforms
+# Australia. The authors acknowledge the use of the National Computational
+# Infrastructure (NCI) supported by the Australian Government.
+#
+#########################################################
+
+#PBS -P <project>
+#PBS -N gatk4_gathervcfs
+#PBS -l walltime=00:00:00,ncpus=,mem=GB,wd
+#PBS -q normalbw
+#PBS -W umask=022
+#PBS -l storage=
+#PBS -o ./Logs/gatk4_gathervcfs_missing.o
+#PBS -e ./Logs/gatk4_gathervcfs_missing.e
+
+set -e
+
+INPUTS=./Inputs/gatk4_gathervcfs_missing.inputs
+
+# NCPUs = CPUs per task
+NCPUS=1
+# UNHASH IF USING LESS THAN A FULL NODE
+PBS_NCI_NCPUS_PER_NODE=$PBS_NCPUS
+		
+#########################################################
+# Do not edit below this line 
+#########################################################
+
+module load openmpi/4.1.0
+module load nci-parallel/1.0.0a
+module load gatk/4.1.8.1
+
+# SCRIPT
+SCRIPT=./gatk4_gathervcfs.sh
+
+M=$(( PBS_NCI_NCPUS_PER_NODE / NCPUS )) #tasks per node
+
+sed "s|^|${SCRIPT} |" ${INPUTS} > ${PBS_JOBFS}/input-file
+
+mpirun --np $((M * PBS_NCPUS / PBS_NCI_NCPUS_PER_NODE)) \
+        --map-by node:PE=${NCPUS} \
+        nci-parallel \
+        --verbose \
+        --input-file ${PBS_JOBFS}/input-file
+

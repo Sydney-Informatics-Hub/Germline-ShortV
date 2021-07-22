@@ -1,57 +1,76 @@
 #!/bin/bash
 
 #########################################################
-#
-# Platform: NCI Gadi HPC
-# Description: Run SNP and Indel VQSR and collect final
-# variant calling metrics
-# Usage: Replace <project> with your NCI project. Replace <cohort> 
-# with the basename of your ../<cohort>.config file. 
-# Usage:
-#	This job's memory requirements increase with cohort size.
-# 	- ~31Gb memory for 27 samples, walltime=1:08:43
-#	- ~176G memory for 190 samples, walltime=02:42:44
-# Author: Tracy Chew
-# tracy.chew@sydney.edu.au
-# Date last modified: 17/08/2020
-#
-# If you use this script towards a publication, please acknowledge the
-# Sydney Informatics Hub (or co-authorship, where appropriate).
-#
-# Suggested acknowledgement:
-# The authors acknowledge the scientific and technical assistance
-# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
-# Hub and resources and services from the National Computational
-# Infrastructure (NCI), which is supported by the Australian Government
-# with access facilitated by the University of Sydney.
-#
+# 
+# Platform: NCI Gadi HPC 
+# Usage: 
+# Version: 2.0 
+# 
+# For more details see: https://github.com/Sydney-Informatics-Hub/Germline-ShortV 
+# 
+# If you use this script towards a publication, support us by citing: 
+# 
+# Suggest citation: 
+# Sydney Informatics Hub, Core Research Facilities, University of Sydney, 
+# 2021, The Sydney Informatics Hub Bioinformatics Repository, <date accessed>, 
+# https://github.com/Sydney-Informatics-Hub/Germline-ShortV 
+# 
+# Please acknowledge the Sydney Informatics Hub and the facilities: 
+# 
+# Suggested acknowledgement: 
+# The authors acknowledge the technical assistance provided by the Sydney 
+# Informatics Hub, a Core Research Facility of the University of Sydney 
+# and the Australian BioCommons which is enabled by NCRIS via Bioplatforms 
+# Australia. The authors acknowledge the use of the National Computational 
+# Infrastructure (NCI) supported by the Australian Government. 
+# 
 #########################################################
-
-# Run SNP and Indel VQSR. Collect Variant Cslling Metrics
-# See bottom of script for compute resources
 
 #PBS -P <project>
 #PBS -N vqsr
-#PBS -l walltime=03:00:00,ncpus=2,mem=48GB,wd
-#PBS -q express
+#PBS -l walltime=00:00:00,ncpus=,mem=GB,wd
+#PBS -q normal
 #PBS -W umask=022
-#PBS -l storage=scratch/<project>
+#PBS -l storage=
 #PBS -o ./Logs/gatk4_vqsr.o
 #PBS -e ./Logs/gatk4_vqsr.e
 
 set -e
 
-module load gatk/4.1.2.0
+module load gatk/4.1.8.1
 module load R/3.6.1
 
-cohort=<cohort>
-config=../$cohort.config
-vcfdir=./$cohort\_GenotypeGVCFs
-vqsrdir=./$cohort\_VQSR
-logdir=./Logs/gatk4_vqsr
+config=../platinumgenomes.config
+cohort=$(basename $config | cut -d'.' -f1)
 INPUTS=./Inputs
-mergedvcf=${vcfdir}/${cohort}.sorted.g.vcf.gz
-finaldir=../Final_Germline-ShortV_GVCFs
+vcfdir=../${cohort}_GenotypeGVCFs
+vqsrdir=../$cohort\_VQSR_VCFs
+logdir=./Logs/GATK4_VQSR
+errdir=./Logs/GATK4_VQSR_error_capture
+mergedvcf=${vcfdir}/${cohort}.sorted.vcf.gz
+
+# Outputs
+excesshet=${vqsrdir}/${cohort}_noexcesshet.vcf.gz
+sitesonly=${vqsrdir}/${cohort}_noexcesshet_sitesonly.vcf.gz
+indelRecal=${vqsrdir}/${cohort}\_indels.recal
+indelTranches=${vqsrdir}/${cohort}\_indels.tranches
+indelR=${vqsrdir}/${cohort}_indels.R
+snpRecal=${vqsrdir}/${cohort}\_snps.recal
+snpTranches=${vqsrdir}/${cohort}\_snps.tranches
+snpR=${vqsrdir}/${cohort}_snps.R
+indelvqsr=${vqsrdir}/${cohort}\.indelsonly.recalibrated.vcf.gz
+finalvqsr=${vqsrdir}/${cohort}\.final.recalibrated.vcf.gz
+metrics=${vqsrdir}/${cohort}\.final.recalibrated.metrics
+
+# logfiles
+logvarfilt=${logdir}/${cohort}_variant_filtration.log
+logsitesonly=${logdir}/${cohort}_makesitesonly.log
+logindel=${logdir}/${cohort}_indel_variantrecalibrator.log 
+logsnp=${logdir}/${cohort}_snp_variantrecalibrator.log
+logapplyindel=${logdir}/${cohort}_applyvqsr_indels.log 
+logapplysnp=${logdir}/${cohort}_applyvqsr_indels_snps.log
+logmetrics=${logdir}/${cohort}_variantmetrics.log
+err=${errdir}/${cohort}.err
 
 # Reference
 dict=../Reference/hs38DH.dict
@@ -63,39 +82,25 @@ hapmap=${refdir}/hapmap_3.3.hg38.vcf.gz
 omni=${refdir}/1000G_omni2.5.hg38.vcf.gz
 thousandg=${refdir}/1000G_phase1.snps.high_confidence.hg38.vcf.gz
 
-# Outputs
-excesshet=${vqsrdir}/${cohort}_excesshet.vcf.gz
-sitesonly=${vqsrdir}/${cohort}_sitesonly.vcf.gz
-indelRecal=${vqsrdir}/${cohort}\_indels.recal
-indelTranches=${vqsrdir}/${cohort}\_indels.tranches
-indelR=${vqsrdir}/${cohort}_indels.R
-snpRecal=${vqsrdir}/${cohort}\_snps.recal
-snpTranches=${vqsrdir}/${cohort}\_snps.tranches
-snpR=${vqsrdir}/${cohort}_snps.R
-indelvqsr=${vqsrdir}/${cohort}\.indelsonly.recalibrated.vcf.gz
-finalvqsr=${finaldir}/${cohort}\.recalibrated.vcf.gz
-metrics=${finaldir}/${cohort}\.recalibrated.metrics
+mkdir -p ${vqsrdir} ${logdir} ${errdir}
 
-mkdir -p ${vqsrdir}
-mkdir -p ${logdir}
-
+# Filter sites with excess heterozygous genotypes
 # ~0.81min/1000 intervals
-echo "$(date): VariantFiltration" >>${logdir}/${cohort}.oe 2>&1
-gatk --java-options "-Xmx42g -Xms42g" VariantFiltration \
+gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" VariantFiltration \
 	-V ${mergedvcf} \
 	--filter-expression "ExcessHet > 54.69" \
 	--filter-name ExcessHet \
-	-O ${excesshet} >>${logdir}/${cohort}.oe 2>&1
+	-O ${excesshet} >${logvarfilt} 2>&1
 
+# Retain only variant sites
 # ~0.95 min/1000 intervals
-echo "$(date): MakeSitesOnlyVcf" >>${logdir}/${cohort}.oe 2>&1
 gatk MakeSitesOnlyVcf \
 	-I ${excesshet} \
-	-O ${sitesonly} >>${logdir}/${cohort}.oe 2>&1
+	-O ${sitesonly} >${logsitesonly} 2>&1
 
-echo "$(date): Indel VariantRecalibrator" >>${logdir}/${cohort}.oe 2>&1
-# Calculate VQSLOD tranches for indels using VariantRecalibrator. ~6.40 minutes for 6 samples
-gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
+# Calculate VQSLOD tranches for indels using VariantRecalibrator. 
+# ~6.40 minutes for 6 samples
+gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" VariantRecalibrator \
 	-V ${sitesonly} \
 	--trust-all-polymorphic \
 	-tranche 100.0 -tranche 99.95 -tranche 99.9 -tranche 99.5 -tranche 99.0 -tranche 97.0 -tranche 96.0 -tranche 95.0 -tranche 94.0 -tranche 93.5 -tranche 93.0 -tranche 92.0 -tranche 91.0 -tranche 90.0 \
@@ -107,12 +112,10 @@ gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
 	-resource:axiomPoly,known=false,training=true,truth=false,prior=10 ${axiomPoly} \
 	-resource:dbsnp,known=true,training=false,truth=false,prior=2 ${dbsnp} \
 	-O ${indelRecal} \
-	--tranches-file ${indelTranches} >>${logdir}/${cohort}.oe 2>&1
+	--tranches-file ${indelTranches} >${logindel} 2>&1
 	
-echo "$(date): SNP VariantRecalibrator" >>${logdir}/${cohort}.oe 2>&1
-
 # Calculate VQSLOD tranches for SNPs using VariantRecalibrator
-gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
+gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" VariantRecalibrator \
 	-V ${sitesonly} \
 	--trust-all-polymorphic \
 	-tranche 100.0 -tranche 99.95 -tranche 99.9 -tranche 99.8 -tranche 99.6 -tranche 99.5 -tranche 99.4 -tranche 99.3 -tranche 99.0 -tranche 98.0 -tranche 97.0 -tranche 90.0 \
@@ -125,23 +128,21 @@ gatk --java-options "-Xmx42g -Xms42g" VariantRecalibrator \
 	-resource:1000G,known=false,training=true,truth=false,prior=10 ${thousandg} \
 	-resource:dbsnp,known=true,training=false,truth=false,prior=7 ${dbsnp} \
 	-O ${snpRecal} \
-	--tranches-file ${snpTranches} >>${logdir}/${cohort}.oe 2>&1
+	--tranches-file ${snpTranches} >${logsnp} 2>&1
 
 # Indels: Calculate VQSLOD using ApplyVQSR
-echo "$(date): INDEL ApplyVQSR to ${excesshet}" >>${logdir}/${cohort}.oe 2>&1
-gatk --java-options "-Xmx42g -Xms42g" \
+gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
 	ApplyVQSR \
-	-V ${excesshet} \
+	-V ${sitesonly} \
 	--recal-file ${indelRecal} \
 	--tranches-file ${indelTranches} \
 	--truth-sensitivity-filter-level 99.7 \
 	--create-output-variant-index true \
 	-mode INDEL \
-	-O ${indelvqsr} >>${logdir}/${cohort}.oe 2>&1
+	-O ${indelvqsr} >${logapplyindel} 2>&1
 
-echo "$(date): SNP ApplyVQSR to ${indelvqsr}" >>${logdir}/${cohort}.oe 2>&1
 # SNPs: Calculate VQSLOD using ApplyVQSR
-gatk --java-options "-Xmx42g -Xms42g" \
+gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
 	ApplyVQSR \
 	-V ${indelvqsr} \
 	--recal-file ${snpRecal} \
@@ -150,13 +151,25 @@ gatk --java-options "-Xmx42g -Xms42g" \
 	--create-output-variant-index true \
 	-mode SNP \
 	--create-output-variant-md5 \
-	-O ${finalvqsr} >>${logdir}/${cohort}.oe 2>&1
-
-echo "$(date): Evaluate final recalibrated VCF file with ${dbsnp}" >>${logdir}/${cohort}.oe 2>&1
+	-O ${finalvqsr} >${logapplysnp} 2>&1
 
 # Evaluate the filtered callset, compare with known population callset
 gatk CollectVariantCallingMetrics \
 	-I ${finalvqsr} \
 	--DBSNP ${dbsnp} \
 	-SD ${dict} \
-	-O ${metrics} >>${logdir}/${cohort}.oe 2>&1
+	-O ${metrics} >${logmetrics} 2>&1
+
+# Perform error checking for each step
+# Check logs for GATK errors
+if grep -q -i error ${logdir}/*.log
+then
+        printf "Error in GATK logs:\n"  >> $err
+	grep -l -i "error" ${logdir}/*log >> $err
+fi
+
+if grep -q Exception ${logdir}/*log
+then
+        printf "Exception in GATK log" >> $err
+	grep -l -i Exception ${logdir}/*log >> $err
+fi

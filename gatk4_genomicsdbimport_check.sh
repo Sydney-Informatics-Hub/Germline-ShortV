@@ -26,19 +26,16 @@
 # 
 #########################################################
 
+run_num=_1
+
 if [ -z "$1" ]
 then
-	echo "Please run this script with the path to your <cohort>.config e.g. sh gatk4_genomicsdbimport_make_input.sh ../<cohort>.config"
+	echo "Please run this script with the path to your <cohort>.config e.g. sh gatk4_genomicsdbimport_check.sh <cohort>.config"
 fi
-
-# Can include run_num to manage input and log files for benchmarking
-# Otherwise, hash out
-run_num=_7
 
 config=$1
 cohort=$(basename $config | cut -d'.' -f1)
 INPUTS=./Inputs
-inputfile=${INPUTS}/gatk4_genomicsdbimport$run_num.inputs
 ref=../Reference/hs38DH.fasta
 scatterdir=../Reference/ShortV_intervals
 scatterlist=$(ls $scatterdir/*.list)
@@ -48,35 +45,50 @@ if [[ ${#scatterlist[@]} > 1 ]]; then
 fi
 sample_map=${INPUTS}/${cohort}.sample_map
 vcfdir=../GATK4_GVCFs
-outdir=../$cohort\_GenomicsDBImport$run_num
+outdir=../${cohort}_GenomicsDBImport$run_num
 logdir=./Logs/GATK4_GenomicsDBImport$run_num
 errdir=./Logs/GATK4_GenomicsDBImport_error_capture$run_num
+perlreport=${logdir}/GATK_duration_memory.txt
+inputfile=${INPUTS}/gatk4_genomicsdbimport_missing.inputs 
+
+mkdir -p ${INPUTS} ${logdir} ${errdir} ${outdir}
+rm -rf ${inputfile} ${perlreport}
+
+# Run perl script to get duration
+echo "$(date): Checking log files for errors, obtaining duration and memory usage per task..."
+`perl gatk4_duration_mem.pl $logdir`
 
 num_int=`wc -l ${scatterlist} | cut -d' ' -f 1`
 
-mkdir -p ${INPUTS} ${logdir} ${errdir} ${outdir}
-
-rm -rf ${inputfile}
-rm -rf ${sample_map}
-
-# Collect sample IDs from config file
-# Only collect IDs for germline variant calling (labids not ending in -T, -P or -M)
-while read -r sampleid labid seq_center library; do
-	if [[ ! -z ${sampleid} && ! ${sampleid} =~ ^#.*$ && ! ${labid} =~ -T.*$ && ! ${labid} =~ -P.*$ && ! ${labid} =~ -M.*$ ]]; then
-		samples+=("${labid}")
+for interval in $(seq -f "%04g" 0 $((${num_int}-1)))
+do
+	duration=$(grep ${interval}.log $perlreport | awk '{print $2}')
+	memory=$(grep ${interval}.log $perlreport |  awk '{print $3}')
+	if [ ! -d ${outdir}/$interval ]
+	then
+		redo+=("$interval")
+	elif [[ $duration =~ NA || $memory =~ NA ]]
+	then
+		redo+=("$interval")
+	elif [ -s "${err}" ]
+	then
+		redo+=("$interval")
+	elif [ ! "${duration}" ]
+	then
+		echo "No log file found: ${interval}.log. Writing to ${inputfile}"
+		redo+=("$interval")
 	fi
-done < "${config}"
+done < "$perlreport"
 
-echo "$(date): Number of samples: ${#samples[@]}. Creating arguments for each sample for ${num_int} genomic intervals"
-echo "$(date): GenomicsDBImport interval databases will be written to $outdir"
+if [[ ${#redo[@]}>1 ]]
+then
+	echo "$(date): There are ${#redo[@]} intervals that need to be re-run."
+	echo "$(date): Writing inputs to ${INPUTS}/gatk4_genomicsdbimport_missing.inputs"
 
-for sample in "${samples[@]}"; do
-	echo -e "${sample}	${vcfdir}/${sample}.g.vcf.gz" >> ${sample_map}
+	for redo_interval in ${redo[@]};do
+        interval="${scatterdir}/${redo_interval}-scattered.interval_list"
+        echo "${ref},${cohort},${interval},${sample_map},${outdir},${logdir},${errdir}" >> ${inputfile}
 done
-
-# Loop through intervals in scatterlist file
-# Print to ${INPUTS}
-while IFS= read -r intfile; do
-	interval="${scatterdir}/${intfile}"
-	echo "${ref},${cohort},${interval},${sample_map},${outdir},${logdir},${errdir}" >> ${inputfile}
-done < "${scatterlist}"
+else
+	echo "$(date): GenomicsDBImport completed successfully"
+fi

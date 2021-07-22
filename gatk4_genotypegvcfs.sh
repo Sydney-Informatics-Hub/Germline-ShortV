@@ -1,25 +1,29 @@
 #!/bin/bash
 
 #########################################################
-#
-# Platform: NCI Gadi HPC
-# Description: Jointly genotype samples with GenotypeGVCFs
-# Used by gatk4_genotypegvcfs_run_parallel.pbs script and 
-# operates on one genomic interval per task
-# Author: Tracy Chew
-# tracy.chew@sydney.edu.au
-# Date last modified: 17/08/2020
-#
-# If you use this script towards a publication, please acknowledge the
-# Sydney Informatics Hub (or co-authorship, where appropriate).
-#
-# Suggested acknowledgement:
-# The authors acknowledge the scientific and technical assistance
-# <or e.g. bioinformatics assistance of <PERSON>> of Sydney Informatics
-# Hub and resources and services from the National Computational
-# Infrastructure (NCI), which is supported by the Australian Government
-# with access facilitated by the University of Sydney.
-#
+# 
+# Platform: NCI Gadi HPC 
+# Usage: 
+# Version: 2.0 
+# 
+# For more details see: https://github.com/Sydney-Informatics-Hub/Germline-ShortV 
+# 
+# If you use this script towards a publication, support us by citing: 
+# 
+# Suggest citation: 
+# Sydney Informatics Hub, Core Research Facilities, University of Sydney, 
+# 2021, The Sydney Informatics Hub Bioinformatics Repository, <date accessed>, 
+# https://github.com/Sydney-Informatics-Hub/Germline-ShortV 
+# 
+# Please acknowledge the Sydney Informatics Hub and the facilities: 
+# 
+# Suggested acknowledgement: 
+# The authors acknowledge the technical assistance provided by the Sydney 
+# Informatics Hub, a Core Research Facility of the University of Sydney 
+# and the Australian BioCommons which is enabled by NCRIS via Bioplatforms 
+# Australia. The authors acknowledge the use of the National Computational 
+# Infrastructure (NCI) supported by the Australian Government. 
+# 
 #########################################################
 
 
@@ -27,36 +31,43 @@
 # GATK4 uses gnomAD variants, not dbSNP variants
 # No threading option
 
-module load gatk/4.1.2.0
-
 ref=`echo $1 | cut -d ',' -f 1`
 cohort=`echo $1 | cut -d ',' -f 2`
 interval=`echo $1 | cut -d ',' -f 3`
 gendbdir=`echo $1 | cut -d ',' -f 4`
 outdir=`echo $1 | cut -d ',' -f 5`
 logdir=`echo $1 | cut -d ',' -f 6`
-nt=`echo $1 | cut -d ',' -f 7`
+errdir=`echo $1 | cut -d ',' -f 7`
 
 filename=${interval##*/}
 index=${filename%-scattered.interval_list}
 
 out=${outdir}/${cohort}.${index}.vcf.gz
-tmp=${outdir}/tmp/${index}
+tmp=${PBS_JOBFS}/tmp/${index}
+err=${errdir}/${index}.err
 
-mkdir -p ${outdir}
 mkdir -p ${tmp}
+rm -rf ${err}
 
-echo "$(date) : Start GATK 4 GenotypeGVCFs. Reference: ${ref}; Cohort: ${cohort}; Interval: ${interval}; GenomicsDBImport: ${gendbdir}; Out: ${out}; Logs: ${logdir}; Threads: ${nt}" >${logdir}/${index}.oe 2>&1
+echo "$(date) : Start GATK 4 GenotypeGVCFs. Reference: ${ref}; Cohort: ${cohort}; Interval: ${interval}; GenomicsDBImport: ${gendbdir}; Out: ${out}; Logs: ${logdir}; Threads: ${NCPUS}" >${logdir}/${index}.log 2>&1
 
-
-gatk --java-options "-Xmx28g -Xms28g" \
+gatk --java-options "-Xmx28g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
 	GenotypeGVCFs \
 	-R ${ref} \
 	-V gendb://${gendbdir}/${index} \
 	--tmp-dir ${tmp} \
-	-O ${out} >>${logdir}/${index}.oe 2>&1
+	-O ${out} >>${logdir}/${index}.log 2>&1
 
-echo "$(date) : Finished GATK 4 joing genotyping with GenotypeGVCFs for: ${out}" >>${logdir}/${index}.oe 2>&1
+# Check logs for GATK errors
+if grep -q -i error $log
+then
+        printf "Error in GATK log ${log}\n" >> $err
+fi
+
+if grep -q Exception $log
+then
+        printf "Exception in GATK log ${log}\n" >> $err
+fi
 
 
 ## Options to explore

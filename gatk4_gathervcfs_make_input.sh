@@ -26,57 +26,70 @@
 # 
 #########################################################
 
-if [ -z "$1" ]
+# Unhash and use to manage inputs/outputs for benchmarking
+run_num=_4
+
+set -e
+
+config=''
+
+if [ -z "${config}" ]
 then
-	echo "Please run this script with the path to your <cohort>.config e.g. sh gatk4_genomicsdbimport_make_input.sh ../<cohort>.config"
+        if [ -z "$1" ]
+        then
+                echo "Please run this script with the path to your <cohort>.config e.g. sh gatk4_hc_make_input.sh ../cohort.config"
+                exit
+        else
+                config=$1
+        fi
 fi
 
-# Can include run_num to manage input and log files for benchmarking
-# Otherwise, hash out
-run_num=_7
-
-config=$1
 cohort=$(basename $config | cut -d'.' -f1)
-INPUTS=./Inputs
-inputfile=${INPUTS}/gatk4_genomicsdbimport$run_num.inputs
-ref=../Reference/hs38DH.fasta
+vcfdir=../GATK4_HC
+outdir=../GATK4_GVCFs$run_num
 scatterdir=../Reference/ShortV_intervals
 scatterlist=$(ls $scatterdir/*.list)
 if [[ ${#scatterlist[@]} > 1 ]]; then
         echo "$(date): ERROR - more than one scatter list file found: ${scatterlist[@]}"
         exit
 fi
-sample_map=${INPUTS}/${cohort}.sample_map
-vcfdir=../GATK4_GVCFs
-outdir=../$cohort\_GenomicsDBImport$run_num
-logdir=./Logs/GATK4_GenomicsDBImport$run_num
-errdir=./Logs/GATK4_GenomicsDBImport_error_capture$run_num
+logdir=./Logs/GATK4_GatherVCFs$run_num
+errdir=./Logs/GATK4_GatherVCFs_error_capture$run_num
+INPUTS=./Inputs
+inputfile=${INPUTS}/gatk4_gathervcfs${run_num}.inputs
 
 num_int=`wc -l ${scatterlist} | cut -d' ' -f 1`
 
-mkdir -p ${INPUTS} ${logdir} ${errdir} ${outdir}
-
-rm -rf ${inputfile}
-rm -rf ${sample_map}
-
 # Collect sample IDs from config file
-# Only collect IDs for germline variant calling (labids not ending in -T, -P or -M)
+# Only collect IDs for germline variant calling (labids ending in -B or -N)
 while read -r sampleid labid seq_center library; do
-	if [[ ! -z ${sampleid} && ! ${sampleid} =~ ^#.*$ && ! ${labid} =~ -T.*$ && ! ${labid} =~ -P.*$ && ! ${labid} =~ -M.*$ ]]; then
+	if [[ ! ${sampleid} =~ ^#.*$ && ! ${labid} =~ -T.*$ && ! ${labid} =~ -P.*$ && ! ${labid} =~ -M.*$ ]]; then
 		samples+=("${labid}")
 	fi
 done < "${config}"
 
 echo "$(date): Number of samples: ${#samples[@]}. Creating arguments for each sample for ${num_int} genomic intervals"
-echo "$(date): GenomicsDBImport interval databases will be written to $outdir"
 
+mkdir -p ${outdir} ${logdir} ${errdir} ${INPUTS}
+rm -rf ${inputfile}
+
+# Make arguments file for each sample, then add to inputs file
 for sample in "${samples[@]}"; do
-	echo -e "${sample}	${vcfdir}/${sample}.g.vcf.gz" >> ${sample_map}
+	
+	args=${INPUTS}/gatk4_gathervcfs_${sample}\.args
+	out=${outdir}/${sample}.g.vcf.gz
+
+	rm -rf ${args}
+	
+	for interval in $(seq -f "%04g" 0 $((${num_int}-1))); do
+		echo "--I " ${vcfdir}/${sample}/${sample}.${interval}.vcf >> ${args}
+	done
+	echo "${sample},${args},${logdir},${out},${errdir}" >> ${inputfile}
 done
 
-# Loop through intervals in scatterlist file
-# Print to ${INPUTS}
-while IFS= read -r intfile; do
-	interval="${scatterdir}/${intfile}"
-	echo "${ref},${cohort},${interval},${sample_map},${outdir},${logdir},${errdir}" >> ${inputfile}
-done < "${scatterlist}"
+num_tasks=`wc -l $inputfile | cut -d' ' -f 1`
+
+echo "$(date): GatherGVCFs will gather interval VCFs and write sample.g.vcf.gz to ${outdir}"
+echo "$(date): Number of tasks in $inputfile: $num_tasks"
+
+

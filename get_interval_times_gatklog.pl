@@ -27,7 +27,7 @@ use warnings;
 
 my $logdir=$ARGV[0];
 
-my @files = <$logdir/*.oe>;
+my @files = <$logdir/*.log>;
 
 print "#Interval\tDuration\n";
 

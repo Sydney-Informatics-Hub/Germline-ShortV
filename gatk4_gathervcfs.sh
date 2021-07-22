@@ -26,35 +26,24 @@
 # 
 #########################################################
 
-ref=`echo $1 | cut -d ',' -f 1`
-sample=`echo $1 | cut -d ',' -f 2`
-bam=`echo $1 | cut -d ',' -f 3`
-interval=`echo $1 | cut -d ',' -f 4`
-outdir=`echo $1 | cut -d ',' -f 5`
-logdir=`echo $1 | cut -d ',' -f 6`
-errdir=`echo $1 | cut -d ',' -f 7`
-filename=${interval##*/}
-index=${filename%-scattered.interval_list}
-vcf=${outdir}/${sample}.${index}.vcf
-err=${errdir}/${sample}.${index}.err
-log=${logdir}/${index}.log
-rm -rf $err
+set -e
 
-# For PCR-free libraries it is recommended to include -pcr_indel_model NONE
-# GATK can output zipped files but there is a but that doesn't index zipped files
-# XX:ParallelGCThreads=${NCPUS} tested, comparing with -XX:+UseSerialGC 
-gatk --java-options "-Xmx8g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
-	HaplotypeCaller \
-	-R ${ref} \
-	-I ${bam} \
-	-L ${interval} \
-	-O ${vcf} \
-	--pcr-indel-model NONE \
-	-G StandardAnnotation \
-	-G AS_StandardAnnotation \
-	-G StandardHCAnnotation \
-	--native-pair-hmm-threads ${NCPUS} \
-	-ERC GVCF 2>${logdir}/${index}.log
+sample=`echo $1 | cut -d ',' -f 1`
+args=`echo $1 | cut -d ',' -f 2`
+logdir=`echo $1 | cut -d ',' -f 3`
+out=`echo $1 | cut -d ',' -f 4`
+errdir=`echo $1 | cut -d ',' -f 5`
+
+logfile=${logdir}/${sample}.log
+errfile=${errdir}/${sample}.err
+
+mkdir -p ${logdir}
+rm -rf ${errfile}
+
+gatk GatherVcfs --java-options "-Xmx16g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
+	--arguments_file ${args} \
+	--MAX_RECORDS_IN_RAM 1000000000 \
+	-O ${out} > ${logfile} 2>&1
 
 # Check logs for GATK errors
 if grep -q -i error $log
@@ -66,4 +55,6 @@ if grep -q Exception $log
 then
         printf "Exception in GATK log ${log}\n" >> $err
 fi
+
+
 

@@ -34,7 +34,7 @@ fi
 
 # Can include run_num to manage input and log files for benchmarking
 # Otherwise, hash out
-run_num=_4
+run_num=_1
 
 config=$1
 cohort=$(basename $config | cut -d'.' -f1)
@@ -51,16 +51,55 @@ logdir=./Logs/GATK4_GenotypeGVCFs$run_num
 errdir=./Logs/GATK4_GenotypeGVCFs_error_capture$run_num
 sample_map=${INPUTS}/${cohort}.sample_map
 INPUTS=./Inputs
-inputfile=${INPUTS}/gatk4_genotypegvcfs$run_num.inputs
+inputfile=${INPUTS}/gatk4_genotypegvcfs_missing$run_num.inputs
+perlreport=${logdir}/GATK_duration_memory.txt
 num_int=`wc -l ${scatterlist} | cut -d' ' -f 1`
 
+sample_map=${INPUTS}/${cohort}.sample_map
+
 mkdir -p ${INPUTS} ${outdir} ${logdir} ${errdir}
-rm -rf ${INPUTS}/gatk4_genotypegvcfs.inputs
 
-echo "$(date): Creating inputs for ${num_int} genomic intervals."
-echo "$(date): GenotypeGVCF output will be written to ${outdir}"
+rm -rf ${INPUTS}/gatk4_genotypegvcfs_missing.inputs
+rm -rf ${perlfile}
 
-while IFS= read -r intfile; do
-	interval="${scatterdir}/${intfile}"
-	echo "${ref},${cohort},${interval},${gendbdir},${outdir},${logdir},${errdir}" >> ${inputfile}
-done < "${scatterlist}"
+# Run perl script to get duration
+echo "$(date): Checking log files for errors, obtaining duration and memory usage per task..."
+`perl gatk4_duration_mem.pl ${logdir}`
+
+for interval in $(seq -f "%04g" 0 $((${num_int}-1)))
+do
+        duration=$(grep ${interval}.log $perlreport | awk '{print $2}')
+        memory=$(grep ${interval}.log $perlreport |  awk '{print $3}')
+        if [[ ! -s ${outdir}/${cohort}.${interval}.vcf.gz || ! -s ${outdir}/${cohort}.${interval}.vcf.gz.tbi ]] 
+	then
+		echo "Output ${outdir}/${cohort}.${interval}.vcf.gz ${outdir}/${cohort}.${interval}.vcf.gz.tbi empty or non-existant. Writing to ${inputfile}"
+		redo+=("$interval")
+	elif [[ $duration =~ NA || $memory =~ NA ]]
+        then
+                redo+=("$interval")
+        elif [ -s "${err}" ]
+        then
+		echo "Error found, please investigate ${errdir}. Writing to ${inputfile}"
+                redo+=("$interval")
+        elif [ ! "${duration}" ]
+        then
+                echo "No log file found: ${interval}.log. Writing to ${inputfile}"
+                redo+=("$interval")
+        fi
+done < "$perlreport"
+
+if [[ ${#redo[@]}>1 ]]
+then
+	echo "$(date): There are ${#redo[@]} intervals that need to be re-run."
+	echo "$(date): Writing inputs to ${inputfile}"
+	for redo_interval in ${redo[@]};do
+		interval="${scatterdir}/${redo_interval}-scattered.interval_list"
+		echo "${ref},${cohort},${interval},${gendbdir},${outdir},${logdir},${errdir}" >> ${inputfile}
+	done
+else
+	echo "$(date): There are no intervals that need to be re-run."
+	#cd ${logs}
+	#tar --remove-files \
+	#	-czvf genotypegvcfs_logs.tar.gz \
+	#	*.oe
+fi
