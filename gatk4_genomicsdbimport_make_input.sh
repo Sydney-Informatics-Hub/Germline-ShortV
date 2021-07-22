@@ -33,7 +33,7 @@ fi
 
 # Can include run_num to manage input and log files for benchmarking
 # Otherwise, hash out
-run_num=_7
+# run_num=_7
 
 config=$1
 cohort=$(basename $config | cut -d'.' -f1)
