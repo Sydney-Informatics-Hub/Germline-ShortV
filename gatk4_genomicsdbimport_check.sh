@@ -75,7 +75,7 @@ do
 		redo+=("$interval")
 	elif [ ! "${duration}" ]
 	then
-		echo "No log file found: ${interval}.log. Writing to ${inputfile}"
+		echo "No duration reported in log, indicating error: ${interval}.log. Writing to ${inputfile}"
 		redo+=("$interval")
 	fi
 done < "$perlreport"
