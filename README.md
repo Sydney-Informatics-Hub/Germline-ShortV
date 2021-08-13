@@ -214,8 +214,21 @@ You can now refer to the main [user guide](#user-guide).
 
 # Benchmarking metrics
 
-The benchmarking results provided were obtained from a human dataset with an average coverage of 35X.
+## Summary
+ 
+ The benchmarking results provided were obtained from a human dataset (6 Platinum Genomes) with an average coverage of 92X. 
+ 
+ |                  | CPUs_used | Mem_used | CPUtime   | Walltime_used | JobFS_used | CPU Efficiency | Memory Efficiency | NCPUS_per_task | Service_units | Queue    | Parallel tasks | Total tasks |
+|------------------|-----------|----------|-----------|---------------|------------|----------------|-------------------|----------------|---------------|----------|----------------|-------------|
+| HaplotypeCaller  | 864       | 2514 GB  | 472:45:36 | 0:36:50       | 2425550kb  | 0.89           | 0.74              | 1              | NA            | normal   | 864            | 19200       |
+| GatherVCFs       | 6         | 47.46GB  | 0:52:33   | 0:17:36       | 11.67MB    | 0.5            | 0.73              | 1              | 2.61          | normalbw | 6              | 6           |
+| GenomicsDBImport | 112       | 256.69GB | 29:35:15  | 27:56.7       | 746.52MB   | 0.95           | 0.59              | 1              | 39.01         | normalbw | 112            | 6400        |
+| GenotypeGVCFs    | 48        | 99.18GB  | 119:37:17 | 3:55:41       | 1.41GB     | 0.63           | 0.68              | 1              | 565.64        | normal   | 48             | 3200        |
+| Gather and sort  | 1         | 16.43GB  | 0:08:26   | 0:11:51       | 0B         | 0.71           | 0.50              | 1              | 9.48          | express  | 1              | 1           |
+| VQSR             | 1         | 28.73GB  | 0:45:13   | 0:45:43       | 1.02MB     | 0.99           | 0.58              | 1              | 18.29         | normal   | 1              | 1           |
 
+* Please note that multi-sample steps GenomicsDBImport and GenotypeGVCFs scale with cohort size. 
+ 
 ## Step 1. Benchmarking: HaplotypeCaller
 
 The benchmarking metrics below were obtained using human datasets with an average coverage of 35X. 
