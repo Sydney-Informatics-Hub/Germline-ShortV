@@ -256,7 +256,7 @@ You can now refer to the main [user guide](#user-guide).
 | gatk4_genotypegvcfs_48       | hugemem | 48        | 326.98GB | 94:44:02   | 5:21:39       | 8.88MB     | 0.37           | 0.22           | 771.96        | 3200            | 2              | 62.5                             | -Xmx58g                  |
 | gatk4_genotypegvcfs_96       | hugemem | 96        | 701.23GB | 92:53:48   | 2:43:46       | 8.88MB     | 0.35           | 0.24           | 786.08        | 3200            | 2              | 62.5                             | -Xmx58g                  |
 | gatk4_genotypegvcfs_144      | hugemem | 144       | 1.05TB   | 92:09:53   | 1:58:00       | 8.88MB     | 0.33           | 0.24           | 849.6         | 3200            | 2              | 62.5                             | -Xmx58g                  |
-| gatk4_genomicsdbimport_48_h  | hugemem | 48        | 435.48   | 131:03:01  | 3:41:18       | 9383082b   | 0.74           | 0.29           | #REF!         | 3200            | 1              | 31.25                            | -Xmx40g                  |
+
  
 ## Step 1. Benchmarking: HaplotypeCaller
 
