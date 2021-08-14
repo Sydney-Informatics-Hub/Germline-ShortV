@@ -214,9 +214,9 @@ You can now refer to the main [user guide](#user-guide).
 
 # Benchmarking metrics
 
-## Summary
+## Summary - 6 human samples
  
- The benchmarking results provided were obtained from a human dataset (6 Platinum Genomes) with an average coverage of 92X. 
+ The benchmarking results below were obtained from a human dataset (6 Platinum Genomes) with an average coverage of 92X. 
  
  |                  | CPUs_used | Mem_used | CPUtime   | Walltime_used | JobFS_used | CPU Efficiency | Memory Efficiency | NCPUS_per_task | Service_units | Queue    | Parallel tasks | Total tasks |
 |------------------|-----------|----------|-----------|---------------|------------|----------------|-------------------|----------------|---------------|----------|----------------|-------------|
@@ -228,6 +228,35 @@ You can now refer to the main [user guide](#user-guide).
 | VQSR             | 1         | 28.73GB  | 0:45:13   | 0:45:43       | 1.02MB     | 0.99           | 0.58              | 1              | 18.29         | normal   | 1              | 1           |
 
 * Please note that multi-sample steps GenomicsDBImport and GenotypeGVCFs scale with cohort size. 
+ 
+## Summary - 20 human samples
+ 
+ The benchmarking results below were obtained from a human dataset with:
+ 
+ * Median coverage: 34.3 X
+ * Mapping rate: 99.8%
+ * Average total raw FASTQ size: 71.7 GB
+ * Average final BAM size: 92.2 GB
+ 
+ 
+ | #JobName                     | Queue   | CPUs_used | Mem_used | CPUtime    | Walltime_used | JobFS_used | CPU Efficiency | MEM Efficiency | Service_units | Number of tasks | NCPUs per task | Average mem allowed per task(GB) | Java mem (if applicable) |
+|------------------------------|---------|-----------|----------|------------|---------------|------------|----------------|----------------|---------------|-----------------|----------------|----------------------------------|--------------------------|
+| gatk4_hc_960                 | normal  | 960       | 3.29TB   | 1675:26:10 | 1:46:42       | 20.43MB    | 0.98           | 0.88           | 3414.4        | 64000           | 1              | 4                                |                          |
+| gatk4_hc_1920                | normal  | 1920      | 6.52TB   | 1693:46:28 | 0:54:08       | 20.55MB    | 0.98           | 0.87           | 3464.53       | 64000           | 1              | 4                                |                          |
+| gatk4_hc_2880                | normal  | 2880      | 9.15TB   | 1744:28:32 | 0:39:07       | 20.55MB    | 0.93           | 0.81           | 3755.2        | 64000           | 1              | 4                                |                          |
+| gatk4_hc_3840                | normal  | 3840      | 11.42TB  | 2154:15:26 | 0:40:05       | 20.55MB    | 0.84           | 0.76           | 5130.67       | 64000           | 1              | 4                                |                          |
+| gatk4_gathervcfs_5           | hugemem | 5         | 160.0GB  | 10:22:28   | 2:43:03       | 8.05MB     | 0.76           | 1.00           | 40.76         | 20              | 1              | 32                               |                          |
+| gatk4_gathervcfs_10          | hugemem | 10        | 320.0GB  | 9:56:00    | 1:17:49       | 8.07MB     | 0.77           | 1.00           | 38.91         | 20              | 1              | 32                               |                          |
+| gatk4_gathervcfs_15          | hugemem | 15        | 480.0GB  | 13:28:19   | 1:44:05       | 8.08MB     | 0.52           | 1.00           | 78.06         | 20              | 1              | 32                               |                          |
+| gatk4_gathervcfs_20          | hugemem | 20        | 486.12GB | 28:21:05   | 1:49:46       | 8.09MB     | 0.77           | 0.76           | 109.77        | 20              | 1              | 32                               |                          |
+| gatk4_genomicsdbimport_48    | hugemem | 48        | 746.06GB | 84:38:42   | 2:29:53       | 8.92MB     | 0.71           | 0.51           | 359.72        | 3200            | 1              | 31.25                            | -Xmx40g                  |
+| gatk4_genomicsdbimport_192_n | normal  | 192       | 519.53GB | 119:33:16  | 3:41:05       | 8.93MB     | 0.17           | 0.68           | 1414.93       | 3200            | 4              | 16                               | -Xmx40g                  |
+| gatk4_genomicsdbimport_96    | hugemem | 96        | 1.48TB   | 155:27:45  | 2:28:12       | 8.92MB     | 0.66           | 0.51           | 711.36        | 3200            | 1              | 31.25                            | -Xmx40g                  |
+| gatk4_genomicsdbimport_144   | hugemem | 144       | 931.71GB | 122:04:35  | 3:14:25       | 8.92MB     | 0.26           | 0.21           | 1399.8        | 3200            | 1              | 31.25                            | -Xmx40g                  |
+| gatk4_genotypegvcfs_48       | hugemem | 48        | 326.98GB | 94:44:02   | 5:21:39       | 8.88MB     | 0.37           | 0.22           | 771.96        | 3200            | 2              | 62.5                             | -Xmx58g                  |
+| gatk4_genotypegvcfs_96       | hugemem | 96        | 701.23GB | 92:53:48   | 2:43:46       | 8.88MB     | 0.35           | 0.24           | 786.08        | 3200            | 2              | 62.5                             | -Xmx58g                  |
+| gatk4_genotypegvcfs_144      | hugemem | 144       | 1.05TB   | 92:09:53   | 1:58:00       | 8.88MB     | 0.33           | 0.24           | 849.6         | 3200            | 2              | 62.5                             | -Xmx58g                  |
+| gatk4_genomicsdbimport_48_h  | hugemem | 48        | 435.48   | 131:03:01  | 3:41:18       | 9383082b   | 0.74           | 0.29           | #REF!         | 3200            | 1              | 31.25                            | -Xmx40g                  |
  
 ## Step 1. Benchmarking: HaplotypeCaller
 
