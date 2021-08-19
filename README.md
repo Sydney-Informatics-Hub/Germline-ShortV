@@ -284,7 +284,7 @@ Scalability to cohort size
 
 # Cite us to support us!
  
-The Somatic-ShortV pipeline can be cited as DOI: https://doi.org/10.48546/workflowhub.workflow.143.1
+The Germline-ShortV pipeline can be cited as DOI: https://doi.org/10.48546/workflowhub.workflow.143.1
 
 If you use our pipelines, please cite us:
 
