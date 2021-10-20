@@ -13,7 +13,7 @@ authors:
   - family-names: "Sadsad"
     given-names: "Rosemarie"
     orcid: "https://orcid.org/0000-0003-2488-953X"
-title: "Fastq-to-BAM"
+title: "Germline-ShortV"
 version: 2.0
 doi: 10.48546/workflowhub.workflow.143.1
 date-released: 2021-06-18
