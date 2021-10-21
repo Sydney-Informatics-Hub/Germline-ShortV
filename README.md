@@ -284,7 +284,7 @@ Scalability to cohort size
 
 # Cite us to support us!
  
-Chew, T., Willet, C., Samaha, G., Menadue, B. J., Kobayashi, R., & Sadsad, R. (2021). Germline-ShortV (Version 1.0) [Computer software]. https://doi.org/10.48546/workflowhub.workflow.143.1
+Chew, T., Willet, C., Samaha, G., Menadue, B. J., Downton, M., Sun, Y., Kobayashi, R., & Sadsad, R. (2021). Germline-ShortV (Version 1.0) [Computer software]. https://doi.org/10.48546/workflowhub.workflow.143.1
  
 ## Acknowledgements
    
