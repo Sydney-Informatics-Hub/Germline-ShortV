@@ -133,7 +133,7 @@ gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${P
 # Indels: Calculate VQSLOD using ApplyVQSR
 gatk --java-options "-Xmx42g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
 	ApplyVQSR \
-	-V ${sitesonly} \
+	-V ${excesshet} \
 	--recal-file ${indelRecal} \
 	--tranches-file ${indelTranches} \
 	--truth-sensitivity-filter-level 99.7 \
