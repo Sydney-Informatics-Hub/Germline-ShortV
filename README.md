@@ -155,9 +155,13 @@ The `gatk4_vqsr.pbs` script runs a series of single core commands that performs 
 * Perform `ApplyVQSR` for indels and SNPs to get final, indexed `cohort.final.recalibrated.vcf.gz`
 * Perform `CollectVariantCallingMetrics` on the final VCFs to get metrics in `cohort.final.recalibrated.metrics.variant_calling_detail_metrics`
 
+Before running the VQSR script, **please ensure you have installed a copy of R/3.6.1 to your own project directory**. You will also need to install the following packages ggplot2, gplots, reshape, and gsalib. GATK's VariantRecalibrator tool is run separately for both SNPs and Indels, it generates an rscript file to aid users in visualising their input data and learned model. See the [GATK VariantRecalibrator documentation](https://gatk.broadinstitute.org/hc/en-us/articles/360040509571-VariantRecalibrator#--rscript-file) for more details.   
+
+  
 1. Run these steps editing `gatk4_vqsr` by:
 ```
 Change cohort=/path/to/cohort.conifg
+Change module load R/3.6.1 to your locally installed copy of R/3.6.1
 
 # Adjusting memory, more memory is required for larger cohorts (more variants)
 qsub gatk4_vqsr.pbs`
