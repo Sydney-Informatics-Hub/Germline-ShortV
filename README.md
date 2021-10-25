@@ -178,8 +178,9 @@ The scripts have been tested and are compatible with:
 * gatk/4.1.2.0
 * gatk/4.1.8.1
 * samtools/1.10
+* R/3.6.1  
 
-GATK periodically likes to change flag names and how they are called, please keep this in mind if using a different version of GATK :).
+GATK periodically likes to change flag names and how they are called, please keep this in mind if using a different version of GATK :). 
  
 ## Required inputs
  
