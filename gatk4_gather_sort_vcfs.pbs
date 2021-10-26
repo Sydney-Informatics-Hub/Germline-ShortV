@@ -32,6 +32,7 @@
 #PBS -q express
 #PBS -W umask=022
 #PBS -l storage=
+#PBS -l jobfs=100MB
 #PBS -o ./Logs/gatk4_gather_sort.o
 #PBS -e ./Logs/gatk4_gather_sort.e
 
