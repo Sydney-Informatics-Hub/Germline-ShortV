@@ -139,7 +139,8 @@ sh gatk4_genotypegvcfs_check.sh /path/to/cohort.config
 # Only run the job below if there were tasks that failed
 qsub gatk4_genotypegvcfs_missing_run_parallel.pbs
 ```
-3. Gather joint-genotyped interval VCFs into a multisample GVCF. 
+3. Gather joint-genotyped interval VCFs into a multisample GVCF. By default the jobfs allocation for this job is set to 100MB. Users may need to increase the jobfs allocation, depending on their specific needs. To do this edit the `#PBS -l jobfs=` variable at the top of the script. See the [NCI Gadi queue limits guide](https://opus.nci.org.au/display/Help/Queue+Limits) for queue-specific limits. 
+ 
 ```
 qsub gatk4_gather_sort_vcfs.pbs
 ```
