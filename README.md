@@ -226,7 +226,7 @@ You can now refer to the main [user guide](#user-guide).
  
  |                  | CPUs_used | Mem_used | CPUtime   | Walltime_used | JobFS_used | CPU Efficiency | Memory Efficiency | NCPUS_per_task | Service_units | Queue    | Parallel tasks | Total tasks |
 |------------------|-----------|----------|-----------|---------------|------------|----------------|-------------------|----------------|---------------|----------|----------------|-------------|
-| HaplotypeCaller  | 864       | 2514 GB  | 472:45:36 | 0:36:50       | 2425550kb  | 0.89           | 0.74              | 1              | NA            | normal   | 864            | 19200       |
+| HaplotypeCaller  | 864       | 2514 GB  | 472:45:36 | 0:36:50       | 2425550kb  | 0.89           | 0.74              | 1              | 1066            | normal   | 864            | 19200       |
 | GatherVCFs       | 6         | 47.46GB  | 0:52:33   | 0:17:36       | 11.67MB    | 0.5            | 0.73              | 1              | 2.61          | normalbw | 6              | 6           |
 | GenomicsDBImport | 112       | 256.69GB | 29:35:15  | 27:56.7       | 746.52MB   | 0.95           | 0.59              | 1              | 39.01         | normalbw | 112            | 6400        |
 | GenotypeGVCFs    | 48        | 99.18GB  | 119:37:17 | 3:55:41       | 1.41GB     | 0.63           | 0.68              | 1              | 565.64        | normal   | 48             | 3200        |
