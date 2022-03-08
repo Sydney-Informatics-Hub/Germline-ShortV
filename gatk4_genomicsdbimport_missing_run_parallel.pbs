@@ -48,6 +48,7 @@ INPUTS=./Inputs/gatk4_genomicsdbimport_missing.inputs
 
 module load openmpi/4.1.0
 module load nci-parallel/1.0.0a
+module load gatk/4.1.8.1
 
 # SCRIPT
 SCRIPT=./gatk4_genomicsdbimport_missing.sh
