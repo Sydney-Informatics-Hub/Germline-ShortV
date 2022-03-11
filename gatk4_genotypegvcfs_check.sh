@@ -34,7 +34,7 @@ fi
 
 # Can include run_num to manage input and log files for benchmarking
 # Otherwise, hash out
-run_num=_1
+#run_num=_1
 
 config=$1
 cohort=$(basename $config | cut -d'.' -f1)
@@ -98,8 +98,8 @@ then
 	done
 else
 	echo "$(date): There are no intervals that need to be re-run."
-	#cd ${logs}
-	#tar --remove-files \
-	#	-czvf genotypegvcfs_logs.tar.gz \
-	#	*.oe
+	cd ${logs}
+	tar --remove-files \
+		-czvf genotypegvcfs_logs.tar.gz \
+		*.oe
 fi
