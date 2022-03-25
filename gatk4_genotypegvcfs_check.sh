@@ -98,7 +98,7 @@ then
 	done
 else
 	echo "$(date): There are no intervals that need to be re-run."
-	cd ${logs}
+	cd ${logdir}
 	tar --remove-files \
 		-czvf genotypegvcfs_logs.tar.gz \
 		*.oe
