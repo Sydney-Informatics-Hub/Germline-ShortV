@@ -101,5 +101,5 @@ else
 	cd ${logdir}
 	tar --remove-files \
 		-czvf genotypegvcfs_logs.tar.gz \
-		*.oe
+		*.log
 fi
