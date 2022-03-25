@@ -32,7 +32,7 @@
 #PBS -q express
 #PBS -W umask=022
 #PBS -l storage=
-#PBS -l jobfs=100MB
+#PBS -l jobfs=8GB
 #PBS -o ./Logs/gatk4_gather_sort.o
 #PBS -e ./Logs/gatk4_gather_sort.e
 
@@ -40,7 +40,7 @@ set -e
 
 module load gatk/4.1.8.1
 
-config=../platinumgenomes.config
+config=/path/to/cohort.config
 cohort=$(basename $config | cut -d'.' -f1)
 INPUTS=./Inputs
 vcfdir=../${cohort}_GenotypeGVCFs
