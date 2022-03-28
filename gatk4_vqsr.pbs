@@ -40,7 +40,7 @@ set -e
 module load gatk/4.1.8.1
 module load R/3.6.1
 
-config=../platinumgenomes.config
+config=/path/to/cohort.config
 cohort=$(basename $config | cut -d'.' -f1)
 INPUTS=./Inputs
 vcfdir=../${cohort}_GenotypeGVCFs
