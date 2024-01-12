@@ -48,13 +48,14 @@ err=${errdir}/${index}.err
 
 mkdir -p ${tmp}
 rm -rf ${err}
+cp -r ${gendbdir}/${index}/ $tmp/
 
 echo "$(date) : Start GATK 4 GenotypeGVCFs. Reference: ${ref}; Cohort: ${cohort}; Interval: ${interval}; GenomicsDBImport: ${gendbdir}; Out: ${out}; Logs: ${logdir}; Threads: ${NCPUS}" >${logdir}/${index}.log 2>&1
 
 gatk --java-options "-Xmx28g -XX:ParallelGCThreads=${NCPUS} -Djava.io.tmpdir=${PBS_JOBFS}" \
 	GenotypeGVCFs \
 	-R ${ref} \
-	-V gendb://${gendbdir}/${index} \
+	-V gendb://${tmp}/${index} \
 	--tmp-dir ${tmp} \
 	-O ${out} >>${logdir}/${index}.log 2>&1
 
