@@ -1,5 +1,12 @@
 # Germline-ShortV
 
+# ⚠️ Notice of workflow deprecation
+This workflow is no longer actively supported or maintained. While you are welcome to use the existing code, please note that no further updates, bug fixes, or support will be provided.
+
+For questions or alternative recommendations for University of Sydney staff and students, please get in touch with sih_info@sydney.edu.au. You can find alternatives at [WorkflowHub](https://workflowhub.eu/)
+
+Thank you for your understanding!
+
 ## Description
 
 This pipeline is an implementation of the [BROAD's Best Practice Workflow for Germline short variant discovery (SNPS + Indels)](https://gatk.broadinstitute.org/hc/en-us/articles/360035535932-Germline-short-variant-discovery-SNPs-Indels-). This implementation is optimised for the **National Compute Infrastucture Gadi HPC**, utilising scatter-gather parallelism and the `nci.parallel` utility to enable use of multiple nodes with high CPU or memory efficiency. Scatter-gather parallelism also enables checkpointing and semi-automated re-running of failed tasks. 
